@@ -1,62 +1,58 @@
 import { useState } from 'react';
 import { supabase } from '../lib/supabase';
+import { useI18n } from '../lib/i18n';
 
-// Вход и регистрация по email + паролю. Это пример — Codex поможет улучшить (Google-вход и т.д.).
 export function Auth() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [mode, setMode] = useState<'signin' | 'signup'>('signin');
   const [message, setMessage] = useState('');
   const [busy, setBusy] = useState(false);
+  const { t } = useI18n();
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
+  async function handleSubmit(event: React.FormEvent) {
+    event.preventDefault();
     setBusy(true);
     setMessage('');
-    try {
-      const fn =
-        mode === 'signup'
-          ? supabase.auth.signUp({ email, password })
-          : supabase.auth.signInWithPassword({ email, password });
-      const { error } = await fn;
-      if (error) setMessage(error.message);
-      else if (mode === 'signup') setMessage('Готово! Проверь почту, если нужна подтверждалка.');
-    } catch {
-      setMessage('Что-то пошло не так. Попробуй ещё раз.');
-    } finally {
-      setBusy(false);
+
+    const request =
+      mode === 'signup'
+        ? supabase.auth.signUp({ email, password })
+        : supabase.auth.signInWithPassword({ email, password });
+
+    const { error } = await request;
+    setBusy(false);
+
+    if (error) {
+      setMessage(error.message);
+      return;
     }
+
+    if (mode === 'signup') setMessage(t('accountCreated'));
   }
 
   return (
-    <section className="card">
-      <h2>{mode === 'signin' ? 'Вход' : 'Регистрация'}</h2>
-      <form onSubmit={handleSubmit} className="form">
-        <input
-          type="email"
-          placeholder="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-        />
+    <section className="auth-panel">
+      <div>
+        <p className="eyebrow">{t('authLabel')}</p>
+        <h1>{mode === 'signin' ? t('signInTitle') : t('signUpTitle')}</h1>
+        <p>{t('authHint')}</p>
+      </div>
+      <form className="auth-form" onSubmit={handleSubmit}>
+        <input type="email" placeholder="email" value={email} onChange={(event) => setEmail(event.target.value)} required />
         <input
           type="password"
-          placeholder="пароль (6+ символов)"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
           minLength={6}
+          placeholder={t('passwordPlaceholder')}
+          value={password}
+          onChange={(event) => setPassword(event.target.value)}
           required
         />
-        <button type="submit" disabled={busy}>
-          {busy ? '…' : mode === 'signin' ? 'Войти' : 'Создать аккаунт'}
-        </button>
+        <button type="submit" disabled={busy}>{busy ? t('wait') : mode === 'signin' ? t('signIn') : t('create')}</button>
       </form>
       {message && <p className="message">{message}</p>}
-      <button
-        className="ghost"
-        onClick={() => setMode(mode === 'signin' ? 'signup' : 'signin')}
-      >
-        {mode === 'signin' ? 'Нет аккаунта? Зарегистрируйся' : 'Уже есть аккаунт? Войти'}
+      <button className="ghost-button auth-switch" type="button" onClick={() => setMode(mode === 'signin' ? 'signup' : 'signin')}>
+        {mode === 'signin' ? t('switchToSignUp') : t('switchToSignIn')}
       </button>
     </section>
   );

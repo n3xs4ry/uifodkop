@@ -385,6 +385,15 @@ deno_version = 2
 # [edge_runtime.secrets]
 # secret_key = "env(SECRET_VALUE)"
 
+[functions.telegram-webhook]
+verify_jwt = false
+
+[functions.send-telegram-notifications]
+verify_jwt = false
+
+[functions.send-push-notifications]
+verify_jwt = false
+
 [analytics]
 enabled = true
 port = 54327
