@@ -148,6 +148,9 @@
   .welcome-tasks { grid-template-columns: 1fr; }
   .hero h1 { font-size: 40px; }
   .monthly-spending-panel { min-height: 260px; padding: 18px; }
+  .category-panel { min-height: 220px; padding: 18px; }
+  .category-list article { grid-template-columns: 42px minmax(0, 1fr); }
+  .category-list article > strong { grid-column: 2; }
   .spending-progress-grid { grid-template-columns: 1fr; }
   .spending-bars article div:first-child { align-items: flex-start; flex-direction: column; }
   .calendar-day { min-height: 48px; padding: 5px; }

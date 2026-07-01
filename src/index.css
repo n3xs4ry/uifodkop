@@ -630,6 +630,97 @@ button, input { font: inherit; }
   line-height: 1.45;
 }
 
+.category-panel {
+  min-height: 260px;
+  border: 1px solid rgba(221, 228, 234, 0.86);
+  border-radius: 8px;
+  padding: 22px;
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: var(--shadow);
+  animation: section-rise 0.58s ease both;
+}
+
+.category-list {
+  display: grid;
+  gap: 12px;
+}
+
+.category-list article {
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  border: 1px solid rgba(221, 228, 234, 0.85);
+  border-radius: 8px;
+  padding: 12px;
+  background: #fff;
+  transition: box-shadow 0.25s ease, transform 0.25s ease;
+}
+
+.category-list article:hover {
+  box-shadow: 0 14px 30px rgba(23, 32, 38, 0.09);
+  transform: translateY(-2px);
+}
+
+.category-icon {
+  display: grid;
+  width: 42px;
+  height: 42px;
+  place-items: center;
+  border-radius: 8px;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.category-ai { background: #4a148c; }
+.category-education { background: #208b6d; }
+.category-games { background: #e5534b; }
+.category-music { background: #1f9bb4; }
+.category-other { background: #66727c; }
+.category-video { background: #172026; }
+
+.category-list article div strong {
+  display: block;
+  margin-bottom: 2px;
+}
+
+.category-list article p {
+  margin: 0 0 8px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.category-list article > strong {
+  font-size: 15px;
+  white-space: nowrap;
+}
+
+.category-track {
+  height: 9px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(23, 32, 38, 0.08);
+}
+
+.category-track span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--cyan), var(--yellow));
+  transform: scaleX(0);
+  transform-origin: left center;
+  animation: fill-track 1s ease 0.25s both;
+}
+
+.category-empty {
+  max-width: 440px;
+  margin: 0;
+  color: var(--muted);
+  font-size: 17px;
+  line-height: 1.45;
+}
+
 .panel, .auth-panel {
   border-radius: 8px;
   padding: 20px;

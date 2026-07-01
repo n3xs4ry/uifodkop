@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { BillingCalendar } from './BillingCalendar';
+import { CategoryBreakdownPanel } from './CategoryBreakdownPanel';
 import { MonthlySpendingPanel } from './MonthlySpendingPanel';
 import { NotificationTestPanel } from './NotificationTestPanel';
 import { PushNotificationSettings } from './PushNotificationSettings';
@@ -121,6 +122,7 @@ export function Dashboard() {
         </div>
         <div className="dashboard-main">
           <MonthlySpendingPanel subscriptions={subscriptions} />
+          <CategoryBreakdownPanel subscriptions={subscriptions} />
           <SubscriptionList subscriptions={subscriptions} onDelete={handleDelete} onUpdate={handleUpdate} />
         </div>
       </section>
