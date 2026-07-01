@@ -3,12 +3,14 @@ import type { Session } from '@supabase/supabase-js';
 import { Auth } from './components/Auth';
 import { Dashboard } from './components/Dashboard';
 import { LanguageSwitcher } from './components/LanguageSwitcher';
+import { WelcomePage } from './components/WelcomePage';
 import { supabase } from './lib/supabase';
 import { useI18n } from './lib/i18n';
 
 export default function App() {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const [showAuth, setShowAuth] = useState(false);
   const { t } = useI18n();
 
   useEffect(() => {
@@ -19,6 +21,7 @@ export default function App() {
 
     const { data } = supabase.auth.onAuthStateChange((_event, nextSession) => {
       setSession(nextSession);
+      if (nextSession) setShowAuth(false);
     });
 
     return () => data.subscription.unsubscribe();
@@ -37,14 +40,18 @@ export default function App() {
         </div>
         <div className="topbar-actions">
           <LanguageSwitcher />
-          {session && (
+          {session ? (
             <button className="ghost-button" type="button" onClick={() => supabase.auth.signOut()}>
               {t('signOut')}
+            </button>
+          ) : (
+            <button className="ghost-button auth-top-button" type="button" onClick={() => setShowAuth((isOpen) => !isOpen)}>
+              {showAuth ? '<' : t('signIn')}
             </button>
           )}
         </div>
       </header>
-      {session ? <Dashboard /> : <Auth />}
+      {session ? <Dashboard /> : showAuth ? <Auth /> : <WelcomePage onConnectCard={() => setShowAuth(true)} />}
     </main>
   );
 }

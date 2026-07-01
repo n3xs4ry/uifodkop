@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { BillingCalendar } from './BillingCalendar';
+import { MonthlySpendingPanel } from './MonthlySpendingPanel';
 import { NotificationTestPanel } from './NotificationTestPanel';
 import { PushNotificationSettings } from './PushNotificationSettings';
 import { SubscriptionForm } from './SubscriptionForm';
@@ -17,9 +18,12 @@ import {
   type SubscriptionUpdate,
 } from '../lib/subscriptions';
 
+type ToolTab = 'calendar' | 'telegram' | 'push';
+
 export function Dashboard() {
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
   const [error, setError] = useState('');
+  const [activeTool, setActiveTool] = useState<ToolTab>('calendar');
   const { t } = useI18n();
 
   async function refresh() {
@@ -59,6 +63,12 @@ export function Dashboard() {
     await refresh();
   }
 
+  const toolTabs: Array<{ id: ToolTab; label: string }> = [
+    { id: 'calendar', label: t('calendar') },
+    { id: 'telegram', label: 'Telegram' },
+    { id: 'push', label: 'Push' },
+  ];
+
   return (
     <>
       <section className="hero">
@@ -83,12 +93,36 @@ export function Dashboard() {
             </div>
             <SubscriptionForm onAdd={handleAdd} />
           </section>
-          <TelegramNotificationSettings />
-          <PushNotificationSettings />
-          <NotificationTestPanel />
-          <BillingCalendar subscriptions={subscriptions} />
+          <div className="tool-tabs" aria-label="Dashboard tools">
+            {toolTabs.map((tab) => (
+              <button
+                className={activeTool === tab.id ? 'active' : ''}
+                key={tab.id}
+                type="button"
+                onClick={() => setActiveTool(tab.id)}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+          {activeTool === 'calendar' && <BillingCalendar subscriptions={subscriptions} />}
+          {activeTool === 'telegram' && (
+            <>
+              <TelegramNotificationSettings />
+              <NotificationTestPanel />
+            </>
+          )}
+          {activeTool === 'push' && (
+            <>
+              <PushNotificationSettings />
+              <NotificationTestPanel />
+            </>
+          )}
         </div>
-        <SubscriptionList subscriptions={subscriptions} onDelete={handleDelete} onUpdate={handleUpdate} />
+        <div className="dashboard-main">
+          <MonthlySpendingPanel subscriptions={subscriptions} />
+          <SubscriptionList subscriptions={subscriptions} onDelete={handleDelete} onUpdate={handleUpdate} />
+        </div>
       </section>
     </>
   );

@@ -2,6 +2,32 @@ import { useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { useI18n } from '../lib/i18n';
 
+const guestCredentialsKey = 'sub-tracker-guest-credentials';
+
+type GuestCredentials = {
+  email: string;
+  password: string;
+};
+
+function createGuestCredentials(): GuestCredentials {
+  const id = crypto.randomUUID().replace(/-/g, '').slice(0, 18);
+  return {
+    email: `guest${id}@gmail.com`,
+    password: crypto.randomUUID(),
+  };
+}
+
+function loadGuestCredentials() {
+  const saved = localStorage.getItem(guestCredentialsKey);
+  if (!saved) return null;
+
+  try {
+    return JSON.parse(saved) as GuestCredentials;
+  } catch {
+    return null;
+  }
+}
+
 export function Auth() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -31,6 +57,52 @@ export function Auth() {
     if (mode === 'signup') setMessage(t('accountCreated'));
   }
 
+  async function handleGuest() {
+    setBusy(true);
+    setMessage('');
+
+    const savedCredentials = loadGuestCredentials();
+
+    if (savedCredentials) {
+      const { error } = await supabase.auth.signInWithPassword(savedCredentials);
+      setBusy(false);
+
+      if (error) setMessage(t('guestError'));
+      return;
+    }
+
+    const nextCredentials = createGuestCredentials();
+    const { error } = await supabase.auth.signUp(nextCredentials);
+
+    if (!error) {
+      localStorage.setItem(guestCredentialsKey, JSON.stringify(nextCredentials));
+    }
+
+    setBusy(false);
+
+    if (error) {
+      setMessage(t('guestError'));
+    }
+  }
+
+  async function handleGoogleSignIn() {
+    setBusy(true);
+    setMessage('');
+
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: window.location.origin,
+      },
+    });
+
+    setBusy(false);
+
+    if (error) {
+      setMessage(error.message);
+    }
+  }
+
   return (
     <section className="auth-panel">
       <div>
@@ -50,7 +122,14 @@ export function Auth() {
         />
         <button type="submit" disabled={busy}>{busy ? t('wait') : mode === 'signin' ? t('signIn') : t('create')}</button>
       </form>
+      <button className="secondary-button google-button" type="button" disabled={busy} onClick={handleGoogleSignIn}>
+        {busy ? t('wait') : 'Google'}
+      </button>
       {message && <p className="message">{message}</p>}
+      <button className="secondary-button guest-button" type="button" disabled={busy} onClick={handleGuest}>
+        {busy ? t('wait') : t('continueAsGuest')}
+      </button>
+      <p className="auth-note">{t('guestHint')}</p>
       <button className="ghost-button auth-switch" type="button" onClick={() => setMode(mode === 'signin' ? 'signup' : 'signin')}>
         {mode === 'signin' ? t('switchToSignUp') : t('switchToSignIn')}
       </button>

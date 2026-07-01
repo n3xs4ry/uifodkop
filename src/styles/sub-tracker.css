@@ -104,7 +104,11 @@
 
 @media (max-width: 860px) {
   .hero, .layout, .subscription-card { flex-direction: column; }
+  .welcome-page { grid-template-columns: 1fr; }
+  .welcome-card-preview { margin-top: 0; }
+  .welcome-copy { padding-top: 10px; }
   .stack { flex-basis: auto; width: 100%; }
+  .dashboard-main { width: 100%; }
   .warning-art { flex-basis: 220px; }
 }
 
@@ -112,7 +116,14 @@
   .app-shell { width: min(100% - 20px, 1180px); padding-top: 14px; }
   .topbar { align-items: flex-start; gap: 12px; flex-direction: column; }
   .topbar-actions { width: 100%; justify-content: space-between; }
+  .welcome-copy h1 { font-size: 38px; }
+  .welcome-actions button { width: 100%; }
+  .welcome-actions strong { font-size: 16px; }
+  .welcome-tasks { grid-template-columns: 1fr; }
   .hero h1 { font-size: 40px; }
+  .monthly-spending-panel { min-height: 260px; padding: 18px; }
+  .spending-progress-grid { grid-template-columns: 1fr; }
+  .spending-bars article div:first-child { align-items: flex-start; flex-direction: column; }
   .calendar-day { min-height: 48px; padding: 5px; }
   .subscription-info h3 { font-size: 24px; }
   .edit-actions { grid-template-columns: 1fr; }
