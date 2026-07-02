@@ -1,6 +1,7 @@
 import type { Session } from '@supabase/supabase-js';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { LanguageSwitcher } from './LanguageSwitcher';
+import { SoundtrackToggle } from './SoundtrackToggle';
 import { supabase } from '../lib/supabase';
 import { useI18n } from '../lib/i18n';
 
@@ -26,6 +27,7 @@ export function AppHeader({ session }: Props) {
         <span>{t('appSubtitle')}</span>
       </Link>
       <div className="topbar-actions">
+        <SoundtrackToggle />
         <LanguageSwitcher />
         {session ? (
           <button className="ghost-button" type="button" onClick={handleSignOut}>
