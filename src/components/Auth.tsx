@@ -28,6 +28,10 @@ function loadGuestCredentials() {
   }
 }
 
+function forgetGuestCredentials() {
+  localStorage.removeItem(guestCredentialsKey);
+}
+
 export function Auth() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -61,27 +65,37 @@ export function Auth() {
     setBusy(true);
     setMessage('');
 
-    const savedCredentials = loadGuestCredentials();
+    try {
+      const savedCredentials = loadGuestCredentials();
 
-    if (savedCredentials) {
-      const { error } = await supabase.auth.signInWithPassword(savedCredentials);
-      setBusy(false);
+      if (savedCredentials) {
+        const { error } = await supabase.auth.signInWithPassword(savedCredentials);
+        if (!error) return;
+        forgetGuestCredentials();
+      }
 
-      if (error) setMessage(t('guestError'));
-      return;
-    }
+      const nextCredentials = createGuestCredentials();
+      const { data, error } = await supabase.auth.signUp(nextCredentials);
 
-    const nextCredentials = createGuestCredentials();
-    const { error } = await supabase.auth.signUp(nextCredentials);
+      if (!error && data.session) {
+        localStorage.setItem(guestCredentialsKey, JSON.stringify(nextCredentials));
+        return;
+      }
 
-    if (!error) {
-      localStorage.setItem(guestCredentialsKey, JSON.stringify(nextCredentials));
-    }
+      if (!error && !data.session) {
+        const { error: signInError } = await supabase.auth.signInWithPassword(nextCredentials);
+        if (!signInError) {
+          localStorage.setItem(guestCredentialsKey, JSON.stringify(nextCredentials));
+          return;
+        }
+      }
 
-    setBusy(false);
-
-    if (error) {
+      const { error: anonymousError } = await supabase.auth.signInAnonymously();
+      if (anonymousError) throw anonymousError;
+    } catch {
       setMessage(t('guestError'));
+    } finally {
+      setBusy(false);
     }
   }
 
