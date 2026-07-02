@@ -28,7 +28,11 @@ export default function App() {
   }, []);
 
   if (loading) {
-    return <main className="app-shell">{t('loading')}</main>;
+    return (
+      <main className="app-shell">
+        <section className="panel loading-panel">{t('loading')}</section>
+      </main>
+    );
   }
 
   return (
@@ -46,7 +50,7 @@ export default function App() {
             </button>
           ) : (
             <button className="ghost-button auth-top-button" type="button" onClick={() => setShowAuth((isOpen) => !isOpen)}>
-              {showAuth ? '<' : t('signIn')}
+              {showAuth ? t('back') : t('signIn')}
             </button>
           )}
         </div>

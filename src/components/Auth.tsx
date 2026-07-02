@@ -111,15 +111,21 @@ export function Auth() {
         <p>{t('authHint')}</p>
       </div>
       <form className="auth-form" onSubmit={handleSubmit}>
-        <input type="email" placeholder="email" value={email} onChange={(event) => setEmail(event.target.value)} required />
-        <input
-          type="password"
-          minLength={6}
-          placeholder={t('passwordPlaceholder')}
-          value={password}
-          onChange={(event) => setPassword(event.target.value)}
-          required
-        />
+        <label>
+          Email
+          <input type="email" placeholder="you@example.com" value={email} onChange={(event) => setEmail(event.target.value)} required />
+        </label>
+        <label>
+          {t('password')}
+          <input
+            type="password"
+            minLength={6}
+            placeholder={t('passwordPlaceholder')}
+            value={password}
+            onChange={(event) => setPassword(event.target.value)}
+            required
+          />
+        </label>
         <button type="submit" disabled={busy}>{busy ? t('wait') : mode === 'signin' ? t('signIn') : t('create')}</button>
       </form>
       <button className="secondary-button google-button" type="button" disabled={busy} onClick={handleGoogleSignIn}>

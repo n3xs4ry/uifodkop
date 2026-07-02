@@ -39,9 +39,18 @@ export function SubscriptionEditForm({ subscription, onCancel, onSave }: Props) 
 
   return (
     <form className="edit-form" onSubmit={handleSubmit}>
-      <input value={name} onChange={(event) => setName(event.target.value)} aria-label={t('name')} />
-      <input min="0" step="0.01" type="number" value={cost} onChange={(event) => setCost(event.target.value)} aria-label={t('cost')} />
-      <input type="date" value={chargeDate} onChange={(event) => setChargeDate(event.target.value)} aria-label={t('chargeDate')} />
+      <label>
+        {t('name')}
+        <input value={name} onChange={(event) => setName(event.target.value)} />
+      </label>
+      <label>
+        {t('cost')}
+        <input min="0" step="0.01" type="number" value={cost} onChange={(event) => setCost(event.target.value)} />
+      </label>
+      <label>
+        {t('chargeDate')}
+        <input type="date" value={chargeDate} onChange={(event) => setChargeDate(event.target.value)} />
+      </label>
       <div className="edit-actions">
         <button type="submit" disabled={busy}>{busy ? t('saving') : t('save')}</button>
         <button type="button" className="secondary-button" disabled={busy} onClick={onCancel}>{t('cancel')}</button>
