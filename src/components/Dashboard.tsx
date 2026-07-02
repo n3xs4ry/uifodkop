@@ -24,7 +24,6 @@ type ToolTab = 'calendar' | 'telegram' | 'push';
 export function Dashboard() {
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
   const [error, setError] = useState('');
-  const [loading, setLoading] = useState(true);
   const [activeTool, setActiveTool] = useState<ToolTab>('calendar');
   const { t } = useI18n();
 
@@ -34,8 +33,6 @@ export function Dashboard() {
       setError('');
     } catch (err) {
       setError(err instanceof Error ? err.message : t('loadSubscriptionsError'));
-    } finally {
-      setLoading(false);
     }
   }
 
@@ -75,24 +72,19 @@ export function Dashboard() {
 
   return (
     <>
-      <section className="dashboard-header">
+      <section className="hero">
         <div>
           <p className="eyebrow">Sub Tracker</p>
           <h1>{t('heroTitle')}</h1>
           <p className="hero-copy">{t('heroCopy')}</p>
         </div>
-        <div className="summary-strip" aria-label={t('dashboardSummary')}>
-          <article>
-            <span>{t('monthly')}</span>
-            <strong>{monthlyTotal.toLocaleString('ru-RU')} ₸</strong>
-          </article>
-          <article>
-            <span>{t('nextPayment')}</span>
-            <strong>{nextCharge ? nextCharge.name : t('noneYet')}</strong>
-          </article>
+        <div className="hero-stat">
+          <span>{t('monthly')}</span>
+          <strong>{monthlyTotal.toLocaleString('ru-RU')} ₸</strong>
+          <p>{nextCharge ? t('nextCharge', { name: nextCharge.name }) : t('addFirst')}</p>
         </div>
       </section>
-      {error && <p className="message alert-message">{error}</p>}
+      {error && <p className="message">{error}</p>}
       <section className="layout">
         <div className="stack">
           <section className="panel">
@@ -102,7 +94,7 @@ export function Dashboard() {
             </div>
             <SubscriptionForm onAdd={handleAdd} />
           </section>
-          <div className="tool-tabs" aria-label={t('dashboardTools')}>
+          <div className="tool-tabs" aria-label="Dashboard tools">
             {toolTabs.map((tab) => (
               <button
                 className={activeTool === tab.id ? 'active' : ''}
@@ -129,15 +121,9 @@ export function Dashboard() {
           )}
         </div>
         <div className="dashboard-main">
-          {loading ? (
-            <section className="panel loading-panel">{t('loading')}</section>
-          ) : (
-            <>
-              <MonthlySpendingPanel subscriptions={subscriptions} />
-              <CategoryBreakdownPanel subscriptions={subscriptions} />
-              <SubscriptionList subscriptions={subscriptions} onDelete={handleDelete} onUpdate={handleUpdate} />
-            </>
-          )}
+          <MonthlySpendingPanel subscriptions={subscriptions} />
+          <CategoryBreakdownPanel subscriptions={subscriptions} />
+          <SubscriptionList subscriptions={subscriptions} onDelete={handleDelete} onUpdate={handleUpdate} />
         </div>
       </section>
     </>

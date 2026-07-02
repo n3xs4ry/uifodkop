@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import warningImage from '../assets/payment-warning.png';
 import { formatLongDate } from '../lib/dateFormat';
 import { useI18n } from '../lib/i18n';
 import type { Subscription, SubscriptionUpdate } from '../lib/subscriptions';
@@ -20,7 +21,6 @@ function formatMoney(value: number, locale: string) {
 
 export function SubscriptionList({ subscriptions, onDelete, onUpdate }: Props) {
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [deletingId, setDeletingId] = useState<string | null>(null);
   const { language, locale, t } = useI18n();
 
   function statusText(days: number) {
@@ -34,7 +34,6 @@ export function SubscriptionList({ subscriptions, onDelete, onUpdate }: Props) {
   if (subscriptions.length === 0) {
     return (
       <section className="panel empty-state">
-        <p className="eyebrow">{t('subscriptions')}</p>
         <h2>{t('noSubscriptions')}</h2>
         <p>{t('emptyHint')}</p>
       </section>
@@ -42,17 +41,16 @@ export function SubscriptionList({ subscriptions, onDelete, onUpdate }: Props) {
   }
 
   return (
-    <section className="subscriptions-list" aria-label={t('subscriptions')}>
+    <section className="subscriptions-list">
       {subscriptions.map((sub) => {
         const days = daysUntil(sub.chargeDate);
-        const urgent = days >= 0 && days <= 3;
+        const urgent = days <= 3;
         const editing = editingId === sub.id;
-        const deleting = deletingId === sub.id;
 
         return (
           <article className={`subscription-card ${urgent ? 'urgent' : ''}`} key={sub.id}>
-            <div className="subscription-avatar" aria-hidden="true">
-              <strong>{sub.name.slice(0, 2).toUpperCase()}</strong>
+            <div className="warning-art">
+              <img src={warningImage} alt={t('attention')} />
               <span>{urgent ? t('attention') : t('planned')}</span>
             </div>
             <div className="subscription-info">
@@ -77,37 +75,22 @@ export function SubscriptionList({ subscriptions, onDelete, onUpdate }: Props) {
               )}
             </div>
             <div className="card-actions">
-              {deleting ? (
-                <>
-                  <button className="danger-button" type="button" onClick={() => onDelete(sub.id)}>
-                    {t('confirmDelete')}
-                  </button>
-                  <button className="secondary-button compact-button" type="button" onClick={() => setDeletingId(null)}>
-                    {t('cancel')}
-                  </button>
-                </>
-              ) : (
-                <>
-                  <button
-                    className="icon-button"
-                    type="button"
-                    onClick={() => setEditingId(editing ? null : sub.id)}
-                    aria-label={t('edit', { name: sub.name })}
-                    title={t('edit', { name: sub.name })}
-                  >
-                    {t('editShort')}
-                  </button>
-                  <button
-                    className="icon-button danger-icon"
-                    type="button"
-                    onClick={() => setDeletingId(sub.id)}
-                    aria-label={t('delete', { name: sub.name })}
-                    title={t('delete', { name: sub.name })}
-                  >
-                    {t('deleteShort')}
-                  </button>
-                </>
-              )}
+              <button
+                className="icon-button"
+                type="button"
+                onClick={() => setEditingId(editing ? null : sub.id)}
+                aria-label={t('edit', { name: sub.name })}
+              >
+                ✎
+              </button>
+              <button
+                className="icon-button"
+                type="button"
+                onClick={() => onDelete(sub.id)}
+                aria-label={t('delete', { name: sub.name })}
+              >
+                ×
+              </button>
             </div>
           </article>
         );
