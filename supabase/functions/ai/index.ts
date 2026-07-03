@@ -1,5 +1,5 @@
 const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY');
-const MODEL = 'gemini-2.5-flash-lite';
+const MODEL = 'gemini-2.5-flash';
 
 const SAFETY_REFUSAL =
   'Я не могу выполнить этот запрос, так как это нарушает правила безопасности и закон';
