@@ -1,4 +1,4 @@
-import { supabase } from '../lib/supabase';
+import { supabase, supabaseAnonKey, supabaseUrl } from '../lib/supabase';
 
 const SUBTRACK_SYSTEM_INSTRUCTIONS = `
 Ты — встроенный ИИ-ассистент приложения SubTrack. По закону и правилам безопасности ты обязан в первом сообщении или в своем описании четко предупреждать пользователя: "Я — ИИ-ассистент и могу ошибаться. Пожалуйста, перепроверяйте важные финансовые данные".
@@ -19,24 +19,66 @@ export async function askGemini({
   prompt,
   system,
 }: GeminiMessage): Promise<GeminiResponse> {
+  const cleanPrompt = prompt.trim();
+  if (!cleanPrompt) {
+    throw new Error('Введите вопрос для ИИ-ассистента.');
+  }
+
+  const { data: sessionData } = await supabase.auth.getSession();
+  const accessToken = sessionData.session?.access_token;
+  if (!accessToken) {
+    throw new Error('Пожалуйста, войдите в аккаунт, чтобы использовать ИИ-ассистента.');
+  }
+
   const appSystem = system?.trim()
     ? `${SUBTRACK_SYSTEM_INSTRUCTIONS}\n\nДополнительный контекст приложения:\n${system.trim()}`
     : SUBTRACK_SYSTEM_INSTRUCTIONS;
 
-  const { data, error } = await supabase.functions.invoke<GeminiResponse>('ai', {
-    body: {
-      prompt: prompt.trim(),
-      system: appSystem,
-    },
-  });
+  try {
+    const response = await fetch(`${supabaseUrl}/functions/v1/ai`, {
+      method: 'POST',
+      headers: {
+        apikey: supabaseAnonKey,
+        authorization: `Bearer ${accessToken}`,
+        'content-type': 'application/json',
+      },
+      body: JSON.stringify({
+        prompt: cleanPrompt,
+        system: appSystem,
+      }),
+    });
 
-  if (error) {
-    throw new Error(error.message);
+    const data = (await response.json().catch(() => null)) as
+      | (Partial<GeminiResponse> & { error?: string })
+      | null;
+
+    if (!response.ok) {
+      throw new Error(data?.error || getFunctionErrorMessage(response.status));
+    }
+
+    if (!data?.text) {
+      throw new Error('Gemini вернул пустой ответ.');
+    }
+
+    return { text: data.text };
+  } catch (error) {
+    if (error instanceof TypeError) {
+      throw new Error(
+        'Не удалось подключиться к ИИ-функции Supabase. Проверьте, что функция ai задеплоена командой npm run ai:deploy.',
+      );
+    }
+    throw error;
+  }
+}
+
+function getFunctionErrorMessage(status: number) {
+  if (status === 401 || status === 403) {
+    return 'Нет доступа к ИИ-функции. Войдите в аккаунт заново.';
   }
 
-  if (!data?.text) {
-    throw new Error('Gemini вернул пустой ответ');
+  if (status === 404) {
+    return 'ИИ-функция ai не найдена в Supabase. Нужно выполнить npm run ai:deploy.';
   }
 
-  return data;
+  return 'ИИ-функция временно недоступна. Попробуйте ещё раз чуть позже.';
 }

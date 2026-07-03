@@ -11,4 +11,6 @@ if (!url || !anonKey) {
   );
 }
 
-export const supabase = createClient(url, anonKey);
+export const supabaseUrl = url;
+export const supabaseAnonKey = anonKey;
+export const supabase = createClient(supabaseUrl, supabaseAnonKey);
