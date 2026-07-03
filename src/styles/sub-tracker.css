@@ -289,6 +289,7 @@
 }
 
 .monthly-spending-panel,
+.ai-chat-panel,
 .category-panel,
 .panel,
 .auth-panel {
@@ -299,8 +300,125 @@
 }
 
 .monthly-spending-panel,
+.ai-chat-panel,
 .category-panel {
   padding: 24px;
+}
+
+.ai-chat-panel {
+  display: grid;
+  gap: 12px;
+  height: 430px;
+  border-color: rgba(252, 213, 53, 0.24);
+}
+
+.ai-chat-locked {
+  height: auto;
+}
+
+.ai-chat-locked h2,
+.ai-chat-locked p {
+  margin: 0;
+}
+
+.ai-chat-locked p:last-child {
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.ai-chat-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.ai-chat-kicker {
+  margin: 0 0 6px;
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.ai-chat-header h2 {
+  margin: 0;
+  color: var(--ink);
+  font-size: 22px;
+}
+
+.ai-chat-header span {
+  border: 1px solid rgba(14, 203, 129, 0.35);
+  border-radius: 999px;
+  padding: 5px 9px;
+  background: rgba(14, 203, 129, 0.1);
+  color: var(--up);
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.ai-chat-warning {
+  margin: 0;
+  border: 1px solid rgba(252, 213, 53, 0.2);
+  border-radius: 8px;
+  padding: 8px 10px;
+  background: rgba(252, 213, 53, 0.08);
+  color: var(--body);
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.ai-chat-messages {
+  display: grid;
+  align-content: start;
+  gap: 8px;
+  min-height: 0;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.ai-message {
+  max-width: 86%;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 10px 12px;
+  color: var(--body);
+  font-size: 14px;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.ai-message.assistant {
+  justify-self: start;
+  background: #181a20;
+}
+
+.ai-message.user {
+  justify-self: end;
+  border-color: rgba(252, 213, 53, 0.4);
+  background: rgba(252, 213, 53, 0.13);
+}
+
+.ai-chat-form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 44px;
+  gap: 8px;
+}
+
+.ai-chat-form input {
+  min-height: 44px;
+}
+
+.ai-chat-form button {
+  display: grid;
+  place-items: center;
+  min-height: 44px;
+  border: 0;
+  border-radius: 8px;
+  background: var(--accent);
+  color: var(--on-accent);
+  font-size: 18px;
+  font-weight: 900;
 }
 
 .monthly-spending-panel {

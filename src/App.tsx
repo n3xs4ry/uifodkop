@@ -49,7 +49,10 @@ export default function App() {
         <Route element={<AppLayout session={session} />}>
           <Route index element={session ? <Navigate replace to="/dashboard" /> : <HomePage />} />
           <Route path="auth" element={session ? <Navigate replace to="/dashboard" /> : <AuthPage />} />
-          <Route path="dashboard" element={session ? <DashboardPage /> : <Navigate replace to="/auth" />} />
+          <Route
+            path="dashboard"
+            element={session ? <DashboardPage session={session} /> : <Navigate replace to="/auth" />}
+          />
           <Route path="*" element={<Navigate replace to={session ? '/dashboard' : '/'} />} />
         </Route>
       </Routes>

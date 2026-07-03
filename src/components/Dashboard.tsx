@@ -1,4 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
+import type { Session } from '@supabase/supabase-js';
+import { AiAssistantChat } from './AiAssistantChat';
 import { BillingCalendar } from './BillingCalendar';
 import { CategoryBreakdownPanel } from './CategoryBreakdownPanel';
 import { MonthlySpendingPanel } from './MonthlySpendingPanel';
@@ -21,7 +23,11 @@ import {
 
 type ToolTab = 'calendar' | 'telegram' | 'push';
 
-export function Dashboard() {
+type Props = {
+  session: Session | null;
+};
+
+export function Dashboard({ session }: Props) {
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
   const [error, setError] = useState('');
   const [activeTool, setActiveTool] = useState<ToolTab>('calendar');
@@ -122,6 +128,7 @@ export function Dashboard() {
         </div>
         <div className="dashboard-main">
           <MonthlySpendingPanel subscriptions={subscriptions} />
+          <AiAssistantChat session={session} subscriptions={subscriptions} />
           <CategoryBreakdownPanel subscriptions={subscriptions} />
           <SubscriptionList subscriptions={subscriptions} onDelete={handleDelete} onUpdate={handleUpdate} />
         </div>
