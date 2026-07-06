@@ -1,53 +1,82 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 const soundtrackPath = '/audio/main-theme.mp3';
 
 export function SoundtrackToggle() {
   const audioRef = useRef<HTMLAudioElement>(null);
-  const [isPlaying, setIsPlaying] = useState(false);
+  const shouldPlayRef = useRef(true);
+  const [isEnabled, setIsEnabled] = useState(true);
   const [isMissing, setIsMissing] = useState(false);
 
-  async function handleToggle() {
+  useEffect(() => {
+    startSoundtrack();
+
+    const startAfterGesture = () => {
+      if (shouldPlayRef.current) {
+        startSoundtrack();
+      }
+    };
+
+    window.addEventListener('pointerdown', startAfterGesture);
+    window.addEventListener('keydown', startAfterGesture);
+
+    return () => {
+      window.removeEventListener('pointerdown', startAfterGesture);
+      window.removeEventListener('keydown', startAfterGesture);
+    };
+  }, []);
+
+  async function startSoundtrack() {
+    const audio = audioRef.current;
+    if (!audio || isMissing || !shouldPlayRef.current) return;
+
+    try {
+      audio.volume = 0.28;
+      await audio.play();
+    } catch {
+      // Browsers can block autoplay until the first user gesture.
+    }
+  }
+
+  function handleToggle() {
     const audio = audioRef.current;
     if (!audio || isMissing) return;
 
-    if (isPlaying) {
+    if (shouldPlayRef.current) {
+      shouldPlayRef.current = false;
+      setIsEnabled(false);
       audio.pause();
-      setIsPlaying(false);
       return;
     }
 
-    try {
-      audio.volume = 0.35;
-      await audio.play();
-      setIsPlaying(true);
-    } catch {
-      setIsMissing(true);
-      setIsPlaying(false);
-    }
+    shouldPlayRef.current = true;
+    setIsEnabled(true);
+    startSoundtrack();
   }
 
   return (
     <div className="soundtrack-toggle">
       <audio
         loop
-        preload="none"
+        preload="auto"
         ref={audioRef}
         src={soundtrackPath}
-        onEnded={() => setIsPlaying(false)}
+        onCanPlay={() => {
+          if (shouldPlayRef.current) startSoundtrack();
+        }}
         onError={() => {
           setIsMissing(true);
-          setIsPlaying(false);
         }}
       />
       <button
-        aria-label="Включить или выключить саундтрек"
-        className={isPlaying ? 'active' : ''}
+        aria-label="Выключить или включить фоновую музыку"
+        className={isEnabled ? 'active' : ''}
         disabled={isMissing}
         type="button"
+        onPointerDown={(event) => event.stopPropagation()}
         onClick={handleToggle}
       >
-        {isMissing ? 'No audio' : isPlaying ? 'Pause' : 'Theme'}
+        {isMissing ? 'No audio' : isEnabled ? 'Theme on' : 'Theme off'}
       </button>
     </div>
   );
