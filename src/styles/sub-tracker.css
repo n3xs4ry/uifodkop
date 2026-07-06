@@ -401,7 +401,7 @@
 
 .ai-chat-form {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 44px;
+  grid-template-columns: 44px minmax(0, 1fr) 44px;
   gap: 8px;
 }
 
@@ -409,7 +409,8 @@
   min-height: 44px;
 }
 
-.ai-chat-form button {
+.ai-chat-form button,
+.ai-attach-button {
   display: grid;
   place-items: center;
   min-height: 44px;
@@ -419,6 +420,30 @@
   color: var(--on-accent);
   font-size: 18px;
   font-weight: 900;
+}
+
+.ai-attach-button {
+  cursor: pointer;
+}
+
+.ai-attach-button input {
+  display: none;
+}
+
+.ai-image-chip {
+  justify-self: start;
+  max-width: 100%;
+  min-height: 0;
+  overflow: hidden;
+  border: 1px solid rgba(252, 213, 53, 0.26);
+  border-radius: 999px;
+  padding: 7px 10px;
+  background: rgba(252, 213, 53, 0.1);
+  color: var(--body);
+  font-size: 12px;
+  font-weight: 800;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .monthly-spending-panel {

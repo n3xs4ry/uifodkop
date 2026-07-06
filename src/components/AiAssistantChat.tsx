@@ -1,6 +1,7 @@
-import { FormEvent, useRef, useState } from 'react';
+import { ChangeEvent, FormEvent, useRef, useState } from 'react';
 import type { Session } from '@supabase/supabase-js';
-import { askGemini } from '../services/gemini';
+import { askGemini, type GeminiImage } from '../services/gemini';
+import { readImageAttachment } from '../lib/imageAttachment';
 import type { Subscription } from '../lib/subscriptions';
 
 type Message = {
@@ -18,12 +19,14 @@ const initialMessage: Message = {
   id: 'welcome',
   role: 'assistant',
   text:
-    'Я — ИИ-ассистент и могу ошибаться. Пожалуйста, перепроверяйте важные финансовые данные. Могу помочь найти лишние подписки и идеи для экономии.',
+    'Я — ИИ-ассистент и могу ошибаться. Пожалуйста, перепроверяйте важные финансовые данные. Могу прочитать фото чека, платежа или подписки.',
 };
 
 export function AiAssistantChat({ session, subscriptions }: Props) {
   const [messages, setMessages] = useState<Message[]>([initialMessage]);
   const [input, setInput] = useState('');
+  const [image, setImage] = useState<GeminiImage | null>(null);
+  const [imageName, setImageName] = useState('');
   const [isSending, setIsSending] = useState(false);
   const listRef = useRef<HTMLDivElement>(null);
 
@@ -40,16 +43,19 @@ export function AiAssistantChat({ session, subscriptions }: Props) {
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const question = input.trim();
-    if (!question || isSending) return;
+    if ((!question && !image) || isSending) return;
 
-    const userMessage: Message = createMessage('user', question);
-    setMessages((current) => [...current, userMessage]);
+    const userText = image ? `${question || 'Прочитай фото'}\nФото: ${imageName}` : question;
+    setMessages((current) => [...current, createMessage('user', userText)]);
     setInput('');
+    setImage(null);
+    setImageName('');
     setIsSending(true);
 
     try {
       const answer = await askGemini({
         prompt: question,
+        image: image ?? undefined,
         system: buildSubscriptionContext(subscriptions),
       });
       setMessages((current) => [...current, createMessage('assistant', answer.text)]);
@@ -58,10 +64,27 @@ export function AiAssistantChat({ session, subscriptions }: Props) {
       setMessages((current) => [...current, createMessage('assistant', text)]);
     } finally {
       setIsSending(false);
-      window.setTimeout(() => {
-        listRef.current?.scrollTo({ top: listRef.current.scrollHeight, behavior: 'smooth' });
-      }, 0);
+      window.setTimeout(scrollToBottom, 0);
     }
+  }
+
+  async function handleImageChange(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    event.target.value = '';
+    if (!file) return;
+
+    try {
+      const nextImage = await readImageAttachment(file);
+      setImage(nextImage);
+      setImageName(file.name);
+    } catch (error) {
+      const text = error instanceof Error ? error.message : 'Не удалось прочитать фото.';
+      setMessages((current) => [...current, createMessage('assistant', text)]);
+    }
+  }
+
+  function scrollToBottom() {
+    listRef.current?.scrollTo({ top: listRef.current.scrollHeight, behavior: 'smooth' });
   }
 
   return (
@@ -73,9 +96,7 @@ export function AiAssistantChat({ session, subscriptions }: Props) {
         </div>
         <span>online</span>
       </div>
-      <p className="ai-chat-warning">
-        ⚠️ ИИ-ассистент может ошибаться. Перепроверяйте важные данные.
-      </p>
+      <p className="ai-chat-warning">⚠️ ИИ-ассистент может ошибаться. Перепроверяйте важные данные.</p>
       <div className="ai-chat-messages" ref={listRef}>
         {messages.map((message) => (
           <article className={`ai-message ${message.role}`} key={message.id}>
@@ -84,14 +105,23 @@ export function AiAssistantChat({ session, subscriptions }: Props) {
         ))}
         {isSending && <article className="ai-message assistant">Думаю над ответом...</article>}
       </div>
+      {imageName && (
+        <button className="ai-image-chip" type="button" onClick={() => setImage(null)}>
+          Фото: {imageName} ×
+        </button>
+      )}
       <form className="ai-chat-form" onSubmit={handleSubmit}>
+        <label className="ai-attach-button" title="Прикрепить фото">
+          +
+          <input accept="image/jpeg,image/png,image/webp" type="file" onChange={handleImageChange} />
+        </label>
         <input
           aria-label="Сообщение для ИИ-ассистента"
-          placeholder="Спросите про подписки..."
+          placeholder="Спросите или отправьте фото..."
           value={input}
           onChange={(event) => setInput(event.target.value)}
         />
-        <button aria-label="Отправить сообщение" disabled={isSending || !input.trim()} type="submit">
+        <button aria-label="Отправить сообщение" disabled={isSending || (!input.trim() && !image)} type="submit">
           &gt;
         </button>
       </form>
@@ -100,19 +130,12 @@ export function AiAssistantChat({ session, subscriptions }: Props) {
 }
 
 function buildSubscriptionContext(subscriptions: Subscription[]) {
-  if (subscriptions.length === 0) {
-    return 'У пользователя пока нет добавленных подписок.';
-  }
-
+  if (subscriptions.length === 0) return 'У пользователя пока нет добавленных подписок.';
   return subscriptions
     .map((item) => `${item.name}: ${item.cost} ₸, дата списания ${item.chargeDate}`)
     .join('\n');
 }
 
 function createMessage(role: Message['role'], text: string): Message {
-  return {
-    id: crypto.randomUUID(),
-    role,
-    text,
-  };
+  return { id: crypto.randomUUID(), role, text };
 }

@@ -4,11 +4,18 @@ const SUBTRACK_SYSTEM_INSTRUCTIONS = `
 Ты — встроенный ИИ-ассистент приложения SubTrack. По закону и правилам безопасности ты обязан в первом сообщении или в своем описании четко предупреждать пользователя: "Я — ИИ-ассистент и могу ошибаться. Пожалуйста, перепроверяйте важные финансовые данные".
 Тебе строго запрещено выходить за рамки темы финансов, экономии и управления подписками приложения SubTrack. Если пользователь пытается сменить тему (просит написать код, рассказать сказку, обсудить политику и т.д.), вежливо откажи и верни его к теме подписок.
 Категорически запрещено отвечать на любые запросы, связанные с криминалом, хакингом, обходом законов, насилием или цензурным контентом. На любые подобные попытки отвечай строго и лаконично: "Я не могу выполнить этот запрос, так как это нарушает правила безопасности и закон".
+Если пользователь отправил изображение, прочитай видимый текст и объясни только то, что относится к финансам, платежам, подпискам, чекам или расходам.
 `.trim();
+
+export type GeminiImage = {
+  mimeType: string;
+  data: string;
+};
 
 export type GeminiMessage = {
   prompt: string;
   system?: string;
+  image?: GeminiImage;
 };
 
 export type GeminiResponse = {
@@ -18,10 +25,11 @@ export type GeminiResponse = {
 export async function askGemini({
   prompt,
   system,
+  image,
 }: GeminiMessage): Promise<GeminiResponse> {
   const cleanPrompt = prompt.trim();
-  if (!cleanPrompt) {
-    throw new Error('Введите вопрос для ИИ-ассистента.');
+  if (!cleanPrompt && !image) {
+    throw new Error('Введите вопрос или прикрепите фото.');
   }
 
   const { data: sessionData } = await supabase.auth.getSession();
@@ -43,8 +51,9 @@ export async function askGemini({
         'content-type': 'application/json',
       },
       body: JSON.stringify({
-        prompt: cleanPrompt,
+        prompt: cleanPrompt || 'Прочитай фото и найди финансовую информацию.',
         system: appSystem,
+        image,
       }),
     });
 
