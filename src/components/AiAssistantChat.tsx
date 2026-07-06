@@ -19,8 +19,11 @@ const initialMessage: Message = {
   id: 'welcome',
   role: 'assistant',
   text:
-    'Я — ИИ-ассистент и могу ошибаться. Пожалуйста, перепроверяйте важные финансовые данные. Могу прочитать фото чека, платежа или подписки.',
+    'Я — ИИ-ассистент и могу ошибаться. Пожалуйста, перепроверяйте важные финансовые данные. Могу найти повторяющиеся платежи по скрину выписки.',
 };
+
+const bankImportPrompt =
+  'Проанализируй скрин банковской выписки. Найди повторяющиеся платежи, похожие на подписки. Для каждого кандидата укажи название, сумму, даты/частоту, уверенность и стоит ли добавить в SubTrack.';
 
 export function AiAssistantChat({ session, subscriptions }: Props) {
   const [messages, setMessages] = useState<Message[]>([initialMessage]);
@@ -97,6 +100,9 @@ export function AiAssistantChat({ session, subscriptions }: Props) {
         <span>online</span>
       </div>
       <p className="ai-chat-warning">⚠️ ИИ-ассистент может ошибаться. Перепроверяйте важные данные.</p>
+      <button className="ai-import-button" type="button" onClick={() => setInput(bankImportPrompt)}>
+        Импорт выписки
+      </button>
       <div className="ai-chat-messages" ref={listRef}>
         {messages.map((message) => (
           <article className={`ai-message ${message.role}`} key={message.id}>
