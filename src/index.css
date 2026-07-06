@@ -85,6 +85,27 @@ button:disabled {
   gap: 10px;
 }
 
+.soundtrack-toggle button {
+  min-width: 72px;
+  min-height: 36px;
+  border: 1px solid var(--strong-line);
+  border-radius: 999px;
+  background: var(--panel);
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.soundtrack-toggle button.active {
+  border-color: rgba(252, 213, 53, 0.5);
+  background: rgba(252, 213, 53, 0.12);
+  color: var(--accent);
+}
+
+.soundtrack-toggle button:disabled {
+  opacity: 0.42;
+}
+
 .brand-link,
 .ghost-button {
   text-decoration: none;
