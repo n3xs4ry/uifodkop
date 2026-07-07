@@ -143,7 +143,7 @@ export function Dashboard({ session }: Props) {
           <SubscriptionList subscriptions={subscriptions} onDelete={handleDelete} onUpdate={handleUpdate} />
         </div>
       </section>
-      <AiAssistantChat session={session} subscriptions={subscriptions} />
+      <AiAssistantChat session={session} subscriptions={subscriptions} onAddSubscription={handleAdd} />
     </>
   );
 }
