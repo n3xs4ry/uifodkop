@@ -1,6 +1,8 @@
 import { supabase } from './supabase';
 
-const publicKey = import.meta.env.VITE_VAPID_PUBLIC_KEY as string | undefined;
+const fallbackVapidPublicKey =
+  'BNG8U97sxDXAVCgPmoB-fleAtW5dIDheGATHvSYz3_Pv5W-upz5aZDLl0etdXmY5Lgb0k-uo10g3wwB_XFJktVU';
+const publicKey = (import.meta.env.VITE_VAPID_PUBLIC_KEY as string | undefined) || fallbackVapidPublicKey;
 
 type SavedPushSubscription = {
   endpoint?: string;
@@ -54,10 +56,6 @@ async function saveSubscription(subscription: PushSubscription) {
 export async function enablePushNotifications() {
   if (!canUsePushNotifications()) {
     throw new Error('Этот браузер не поддерживает push-уведомления.');
-  }
-
-  if (!publicKey) {
-    throw new Error('Нет VITE_VAPID_PUBLIC_KEY в .env.local.');
   }
 
   const permission = await Notification.requestPermission();
