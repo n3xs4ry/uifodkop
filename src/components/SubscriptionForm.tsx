@@ -16,6 +16,7 @@ export function SubscriptionForm({ onAdd }: Props) {
   const [chargeDate, setChargeDate] = useState(today());
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const { t } = useI18n();
 
   async function handleSubmit(event: React.FormEvent) {
@@ -24,17 +25,20 @@ export function SubscriptionForm({ onAdd }: Props) {
 
     if (!name.trim() || Number.isNaN(amount) || amount < 0) {
       setError(t('invalidSubscription'));
+      setSuccess('');
       return;
     }
 
     setBusy(true);
     setError('');
+    setSuccess('');
 
     try {
       await onAdd({ name: name.trim(), cost: amount, chargeDate });
       setName('');
       setCost('');
       setChargeDate(today());
+      setSuccess(t('subscriptionAdded'));
     } catch (err) {
       setError(err instanceof Error ? err.message : t('addSubscriptionError'));
     } finally {
@@ -58,6 +62,7 @@ export function SubscriptionForm({ onAdd }: Props) {
       </label>
       <button type="submit" disabled={busy}>{busy ? t('adding') : t('add')}</button>
       {error && <p className="message">{error}</p>}
+      {success && <p className="success-message">{success}</p>}
     </form>
   );
 }

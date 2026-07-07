@@ -20,6 +20,7 @@ export const ru = {
   chargeDate: 'Дата списания',
   add: 'Добавить',
   adding: 'Добавляю...',
+  subscriptionAdded: 'Подписка успешно добавлена.',
   invalidSubscription: 'Заполни название и корректную стоимость.',
   addSubscriptionError: 'Не получилось добавить подписку.',
   calendar: 'Календарь',
