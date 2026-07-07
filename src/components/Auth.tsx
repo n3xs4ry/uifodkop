@@ -12,7 +12,7 @@ type GuestCredentials = {
 function createGuestCredentials(): GuestCredentials {
   const id = crypto.randomUUID().replace(/-/g, '').slice(0, 18);
   return {
-    email: `guest${id}@gmail.com`,
+    email: `guest${id}@guest.subtrack.app`,
     password: crypto.randomUUID(),
   };
 }
@@ -74,26 +74,27 @@ export function Auth() {
         forgetGuestCredentials();
       }
 
+      const { error: anonymousError } = await supabase.auth.signInAnonymously();
+      if (!anonymousError) return;
+
       const nextCredentials = createGuestCredentials();
       const { data, error } = await supabase.auth.signUp(nextCredentials);
+      if (error) throw error;
 
-      if (!error && data.session) {
+      if (data.session) {
         localStorage.setItem(guestCredentialsKey, JSON.stringify(nextCredentials));
         return;
       }
 
-      if (!error && !data.session) {
-        const { error: signInError } = await supabase.auth.signInWithPassword(nextCredentials);
-        if (!signInError) {
-          localStorage.setItem(guestCredentialsKey, JSON.stringify(nextCredentials));
-          return;
-        }
+      const { error: signInError } = await supabase.auth.signInWithPassword(nextCredentials);
+      if (signInError) {
+        throw signInError;
       }
 
-      const { error: anonymousError } = await supabase.auth.signInAnonymously();
-      if (anonymousError) throw anonymousError;
-    } catch {
-      setMessage(t('guestError'));
+      localStorage.setItem(guestCredentialsKey, JSON.stringify(nextCredentials));
+    } catch (err) {
+      const detail = err instanceof Error ? ` ${err.message}` : '';
+      setMessage(`${t('guestError')}${detail}`);
     } finally {
       setBusy(false);
     }
