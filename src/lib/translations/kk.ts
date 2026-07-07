@@ -19,6 +19,7 @@ export const kk: Record<keyof typeof ru, string> = {
   addCharge: 'Төлем қосу',
   name: 'Атауы',
   cost: 'Бағасы',
+  currency: 'Валюта',
   chargeDate: 'Төлем күні',
   add: 'Қосу',
   adding: 'Қосылуда...',

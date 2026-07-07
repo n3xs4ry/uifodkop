@@ -1,17 +1,10 @@
 import { useI18n } from '../lib/i18n';
+import { formatCurrencyTotals, formatMoney } from '../lib/currency';
 import type { Subscription } from '../lib/subscriptions';
 
 type Props = {
   subscriptions: Subscription[];
 };
-
-function formatMoney(value: number, locale: string) {
-  return new Intl.NumberFormat(locale, {
-    currency: 'KZT',
-    maximumFractionDigits: 0,
-    style: 'currency',
-  }).format(value);
-}
 
 export function MonthlySpendingPanel({ subscriptions }: Props) {
   const { locale, t } = useI18n();
@@ -27,7 +20,7 @@ export function MonthlySpendingPanel({ subscriptions }: Props) {
     <section className="monthly-spending-panel">
       <div className="monthly-spending-header">
         <p>{t('monthlySpendingLabel')}</p>
-        <strong>{formatMoney(total, locale)}</strong>
+        <strong>{formatCurrencyTotals(subscriptions, locale) || formatMoney(0, 'KZT', locale)}</strong>
         <span>{t('monthlySpendingCount', { count: subscriptions.length })}</span>
       </div>
       <div className="spending-progress-grid">
@@ -43,7 +36,7 @@ export function MonthlySpendingPanel({ subscriptions }: Props) {
         <article>
           <div>
             <span>{t('monthlyBudgetProgress')}</span>
-            <strong>{formatMoney(total, locale)}</strong>
+            <strong>{formatCurrencyTotals(subscriptions, locale) || formatMoney(0, 'KZT', locale)}</strong>
           </div>
           <div className="spending-progress-track">
             <span style={{ width: `${budgetProgress}%` }} />
@@ -56,7 +49,7 @@ export function MonthlySpendingPanel({ subscriptions }: Props) {
             <article key={item.id}>
               <div>
                 <strong>{item.name}</strong>
-                <span>{formatMoney(item.cost, locale)}</span>
+                <span>{formatMoney(item.cost, item.currency, locale)}</span>
               </div>
               <div className="spending-track">
                 <span style={{ width: `${Math.max(12, (item.cost / maxCost) * 100)}%` }} />

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useI18n } from '../lib/i18n';
+import { currencies, type CurrencyCode } from '../lib/currency';
 import type { Subscription, SubscriptionUpdate } from '../lib/subscriptions';
 
 type Props = {
@@ -11,6 +12,7 @@ type Props = {
 export function SubscriptionEditForm({ subscription, onCancel, onSave }: Props) {
   const [name, setName] = useState(subscription.name);
   const [cost, setCost] = useState(String(subscription.cost));
+  const [currency, setCurrency] = useState<CurrencyCode>(subscription.currency);
   const [chargeDate, setChargeDate] = useState(subscription.chargeDate);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
@@ -29,7 +31,7 @@ export function SubscriptionEditForm({ subscription, onCancel, onSave }: Props) 
     setError('');
 
     try {
-      await onSave({ name: name.trim(), cost: amount, chargeDate });
+      await onSave({ name: name.trim(), cost: amount, currency, chargeDate });
     } catch (err) {
       setError(err instanceof Error ? err.message : t('saveSubscriptionError'));
     } finally {
@@ -46,6 +48,16 @@ export function SubscriptionEditForm({ subscription, onCancel, onSave }: Props) 
       <label>
         {t('cost')}
         <input min="0" step="0.01" type="number" value={cost} onChange={(event) => setCost(event.target.value)} />
+      </label>
+      <label>
+        {t('currency')}
+        <select value={currency} onChange={(event) => setCurrency(event.target.value as CurrencyCode)}>
+          {currencies.map((item) => (
+            <option key={item} value={item}>
+              {item}
+            </option>
+          ))}
+        </select>
       </label>
       <label>
         {t('chargeDate')}

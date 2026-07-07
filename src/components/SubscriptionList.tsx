@@ -2,6 +2,7 @@ import { useState } from 'react';
 import warningImage from '../assets/payment-warning.png';
 import { formatLongDate } from '../lib/dateFormat';
 import { useI18n } from '../lib/i18n';
+import { formatMoney } from '../lib/currency';
 import type { Subscription, SubscriptionUpdate } from '../lib/subscriptions';
 import { daysUntil } from '../lib/subscriptions';
 import { SubscriptionEditForm } from './SubscriptionEditForm';
@@ -11,13 +12,6 @@ type Props = {
   onDelete: (id: string) => Promise<void>;
   onUpdate: (id: string, subscription: SubscriptionUpdate) => Promise<void>;
 };
-
-function formatMoney(value: number, locale: string) {
-  return new Intl.NumberFormat(locale, {
-    currency: 'KZT',
-    style: 'currency',
-  }).format(value);
-}
 
 export function SubscriptionList({ subscriptions, onDelete, onUpdate }: Props) {
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -68,7 +62,7 @@ export function SubscriptionList({ subscriptions, onDelete, onUpdate }: Props) {
                   <p className="status-pill">{statusText(days)}</p>
                   <h3>{sub.name}</h3>
                   <div className="subscription-meta">
-                    <strong>{formatMoney(sub.cost, locale)}</strong>
+                    <strong>{formatMoney(sub.cost, sub.currency, locale)}</strong>
                     <span>{formatLongDate(sub.chargeDate, language, locale)}</span>
                   </div>
                 </>

@@ -10,6 +10,7 @@ import { SubscriptionForm } from './SubscriptionForm';
 import { SubscriptionList } from './SubscriptionList';
 import { TelegramNotificationSettings } from './TelegramNotificationSettings';
 import { useI18n } from '../lib/i18n';
+import { formatCurrencyTotals, formatMoney } from '../lib/currency';
 import {
   addSubscription,
   deleteSubscription,
@@ -32,7 +33,7 @@ export function Dashboard({ session }: Props) {
   const [error, setError] = useState('');
   const [addSuccess, setAddSuccess] = useState('');
   const [activeTool, setActiveTool] = useState<ToolTab>('calendar');
-  const { t } = useI18n();
+  const { locale, t } = useI18n();
 
   async function refresh() {
     try {
@@ -48,8 +49,8 @@ export function Dashboard({ session }: Props) {
   }, []);
 
   const monthlyTotal = useMemo(
-    () => subscriptions.reduce((sum, item) => sum + item.cost, 0),
-    [subscriptions],
+    () => formatCurrencyTotals(subscriptions, locale) || formatMoney(0, 'KZT', locale),
+    [locale, subscriptions],
   );
 
   const nextCharge = subscriptions
@@ -91,7 +92,7 @@ export function Dashboard({ session }: Props) {
         </div>
         <div className="hero-stat">
           <span>{t('monthly')}</span>
-          <strong>{monthlyTotal.toLocaleString('ru-RU')} ₸</strong>
+          <strong>{monthlyTotal}</strong>
           <p>{nextCharge ? t('nextCharge', { name: nextCharge.name }) : t('addFirst')}</p>
         </div>
       </section>
@@ -138,11 +139,11 @@ export function Dashboard({ session }: Props) {
         </div>
         <div className="dashboard-main">
           <MonthlySpendingPanel subscriptions={subscriptions} />
-          <AiAssistantChat session={session} subscriptions={subscriptions} />
           <CategoryBreakdownPanel subscriptions={subscriptions} />
           <SubscriptionList subscriptions={subscriptions} onDelete={handleDelete} onUpdate={handleUpdate} />
         </div>
       </section>
+      <AiAssistantChat session={session} subscriptions={subscriptions} />
     </>
   );
 }

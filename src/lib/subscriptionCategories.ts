@@ -15,6 +15,7 @@ export type CategorySummary = {
   key: CategoryKey;
   total: number;
   count: number;
+  items: Subscription[];
 };
 
 export function getSubscriptionCategory(subscription: Subscription): CategoryKey {
@@ -31,10 +32,11 @@ export function summarizeCategories(subscriptions: Subscription[]) {
 
   subscriptions.forEach((subscription) => {
     const key = getSubscriptionCategory(subscription);
-    const current = summary.get(key) ?? { key, total: 0, count: 0 };
+    const current = summary.get(key) ?? { key, total: 0, count: 0, items: [] };
     summary.set(key, {
       ...current,
       count: current.count + 1,
+      items: [...current.items, subscription],
       total: current.total + subscription.cost,
     });
   });

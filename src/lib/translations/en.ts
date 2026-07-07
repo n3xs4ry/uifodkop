@@ -19,6 +19,7 @@ export const en: Record<keyof typeof ru, string> = {
   addCharge: 'Add charge',
   name: 'Name',
   cost: 'Cost',
+  currency: 'Currency',
   chargeDate: 'Charge date',
   add: 'Add',
   adding: 'Adding...',

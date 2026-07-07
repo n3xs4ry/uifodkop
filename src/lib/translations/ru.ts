@@ -17,6 +17,7 @@ export const ru = {
   addCharge: 'Добавить списание',
   name: 'Название',
   cost: 'Стоимость',
+  currency: 'Валюта',
   chargeDate: 'Дата списания',
   add: 'Добавить',
   adding: 'Добавляю...',

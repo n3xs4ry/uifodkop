@@ -1,4 +1,5 @@
 import { useI18n } from '../lib/i18n';
+import { formatCurrencyTotals } from '../lib/currency';
 import { summarizeCategories, type CategoryKey } from '../lib/subscriptionCategories';
 import type { Subscription } from '../lib/subscriptions';
 
@@ -14,14 +15,6 @@ const categoryIcons: Record<CategoryKey, string> = {
   other: 'OT',
   video: 'VI',
 };
-
-function formatMoney(value: number, locale: string) {
-  return new Intl.NumberFormat(locale, {
-    currency: 'KZT',
-    maximumFractionDigits: 0,
-    style: 'currency',
-  }).format(value);
-}
 
 export function CategoryBreakdownPanel({ subscriptions }: Props) {
   const { locale, t } = useI18n();
@@ -46,7 +39,7 @@ export function CategoryBreakdownPanel({ subscriptions }: Props) {
                   <span style={{ width: `${Math.max(14, (category.total / maxTotal) * 100)}%` }} />
                 </div>
               </div>
-              <strong>{formatMoney(category.total, locale)}</strong>
+              <strong>{formatCurrencyTotals(category.items, locale)}</strong>
             </article>
           ))}
         </div>

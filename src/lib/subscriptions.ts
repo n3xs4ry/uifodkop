@@ -1,9 +1,11 @@
 import { supabase } from './supabase';
+import { normalizeCurrency, type CurrencyCode } from './currency';
 
 export type Subscription = {
   id: string;
   name: string;
   cost: number;
+  currency: CurrencyCode;
   chargeDate: string;
   createdAt: string;
 };
@@ -12,6 +14,7 @@ type SubscriptionRow = {
   id: string;
   name: string;
   cost: number;
+  currency: string | null;
   charge_date: string;
   created_at: string;
 };
@@ -19,6 +22,7 @@ type SubscriptionRow = {
 export type NewSubscription = {
   name: string;
   cost: number;
+  currency: CurrencyCode;
   chargeDate: string;
 };
 
@@ -29,6 +33,7 @@ function mapSubscription(row: SubscriptionRow): Subscription {
     id: row.id,
     name: row.name,
     cost: Number(row.cost),
+    currency: normalizeCurrency(row.currency),
     chargeDate: row.charge_date,
     createdAt: row.created_at,
   };
@@ -37,7 +42,7 @@ function mapSubscription(row: SubscriptionRow): Subscription {
 export async function loadSubscriptions() {
   const { data, error } = await supabase
     .from('subscriptions')
-    .select('id, name, cost, charge_date, created_at')
+    .select('id, name, cost, currency, charge_date, created_at')
     .order('charge_date', { ascending: true });
 
   if (error) throw error;
@@ -48,6 +53,7 @@ export async function addSubscription(item: NewSubscription) {
   const { error } = await supabase.from('subscriptions').insert({
     name: item.name,
     cost: item.cost,
+    currency: item.currency,
     charge_date: item.chargeDate,
   });
 
@@ -65,6 +71,7 @@ export async function updateSubscription(id: string, item: SubscriptionUpdate) {
     .update({
       name: item.name,
       cost: item.cost,
+      currency: item.currency,
       charge_date: item.chargeDate,
     })
     .eq('id', id);
