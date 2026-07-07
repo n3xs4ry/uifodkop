@@ -35,18 +35,24 @@ export function useAiAssistantChat({ subscriptions, onAddSubscription }: Params)
     const question = input.trim();
     if ((!question && !image) || isSending) return;
 
-    addMessage('user', image ? `${question || 'Прочитай фото'}\nФото: ${imageName}` : question);
+    const attachedImage = image;
+    addMessage('user', attachedImage ? `${question || 'Прочитай фото'}\nФото: ${imageName}` : question);
     setInput('');
-    clearImage();
     setIsSending(true);
 
     try {
+      if (attachedImage && wantsPhotoSubscriptionAdd(question)) {
+        await addSubscriptionFromImage(attachedImage);
+        return;
+      }
+
       const answer = await askGemini({
         prompt: question,
-        image: image ?? undefined,
+        image: attachedImage ?? undefined,
         system: buildSubscriptionContext(subscriptions),
       });
       addMessage('assistant', answer.text);
+      clearImage();
     } catch (error) {
       addMessage('assistant', error instanceof Error ? error.message : 'Не получилось получить ответ.');
     } finally {
@@ -72,14 +78,13 @@ export function useAiAssistantChat({ subscriptions, onAddSubscription }: Params)
   async function handleExtractSubscription() {
     if (!image || isSending) return;
 
+    const attachedImage = image;
     setIsSending(true);
     setDraft(null);
     addMessage('user', `Добавь подписку из фото: ${imageName}`);
 
     try {
-      const nextDraft = await extractSubscriptionDraft(image, subscriptions);
-      setDraft(nextDraft);
-      addMessage('assistant', 'Я нашел подписку на фото. Проверь данные ниже и нажми "Добавить".');
+      await addSubscriptionFromImage(attachedImage);
     } catch (error) {
       addMessage('assistant', error instanceof Error ? error.message : 'Не получилось распознать подписку на фото.');
     } finally {
@@ -111,6 +116,31 @@ export function useAiAssistantChat({ subscriptions, onAddSubscription }: Params)
 
   function addMessage(role: AiMessage['role'], text: string) {
     setMessages((current) => [...current, createAiMessage(role, text)]);
+  }
+
+  async function addSubscriptionFromImage(attachedImage: GeminiImage) {
+    const nextDraft = await extractSubscriptionDraft(attachedImage, subscriptions);
+
+    if (nextDraft.confidence < 0.45) {
+      setDraft(nextDraft);
+      addMessage('assistant', 'Я не до конца уверен в данных. Проверь карточку ниже и нажми "Добавить".');
+      return;
+    }
+
+    await onAddSubscription(nextDraft);
+    addMessage(
+      'assistant',
+      `Готово, я сам добавил подписку "${nextDraft.name}" на сумму ${nextDraft.cost} ${nextDraft.currency}.`,
+    );
+    clearImage();
+  }
+
+  function wantsPhotoSubscriptionAdd(text: string) {
+    const normalized = text.toLowerCase();
+    const addWords = ['добав', 'созда', 'сохран', 'запиши', 'внеси', 'add', 'create', 'save'];
+    const subscriptionWords = ['подпис', 'subscription', 'subtrack'];
+    return addWords.some((word) => normalized.includes(word)) &&
+      subscriptionWords.some((word) => normalized.includes(word));
   }
 
   return {
