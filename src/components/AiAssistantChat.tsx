@@ -49,6 +49,11 @@ export function AiAssistantChat({ session, subscriptions, onAddSubscription }: P
               Фото → подписка
             </button>
           </div>
+          {chat.notice && (
+            <p className="ai-action-notice" role="status">
+              {chat.notice}
+            </p>
+          )}
           <div className="ai-chat-messages" ref={chat.listRef}>
             {chat.messages.map((message) => (
               <article className={`ai-message ${message.role}`} key={message.id}>

@@ -21,6 +21,7 @@ export function useAiAssistantChat({ subscriptions, onAddSubscription }: Params)
   const [image, setImage] = useState<GeminiImage | null>(null);
   const [imageName, setImageName] = useState('');
   const [draft, setDraft] = useState<SubscriptionDraft | null>(null);
+  const [notice, setNotice] = useState('');
   const [isOpen, setIsOpen] = useState(false);
   const [isSending, setIsSending] = useState(false);
   const [isSavingDraft, setIsSavingDraft] = useState(false);
@@ -36,6 +37,7 @@ export function useAiAssistantChat({ subscriptions, onAddSubscription }: Params)
     if ((!question && !image) || isSending) return;
 
     const attachedImage = image;
+    setNotice('');
     addMessage('user', attachedImage ? `${question || 'Прочитай фото'}\nФото: ${imageName}` : question);
     setInput('');
     setIsSending(true);
@@ -70,6 +72,7 @@ export function useAiAssistantChat({ subscriptions, onAddSubscription }: Params)
       setImage(await readImageAttachment(file));
       setImageName(file.name);
       setDraft(null);
+      setNotice('Фото прикреплено. Напишите "добавь подписку" или нажмите "Фото → подписка".');
     } catch (error) {
       addMessage('assistant', error instanceof Error ? error.message : 'Не удалось прочитать фото.');
     }
@@ -81,6 +84,7 @@ export function useAiAssistantChat({ subscriptions, onAddSubscription }: Params)
     const attachedImage = image;
     setIsSending(true);
     setDraft(null);
+    setNotice('');
     addMessage('user', `Добавь подписку из фото: ${imageName}`);
 
     try {
@@ -99,7 +103,7 @@ export function useAiAssistantChat({ subscriptions, onAddSubscription }: Params)
     setIsSavingDraft(true);
     try {
       await onAddSubscription(draft);
-      addMessage('assistant', `Готово, подписка "${draft.name}" добавлена.`);
+      showResult(`Готово, подписка "${draft.name}" добавлена.`);
       clearImage();
     } catch (error) {
       addMessage('assistant', error instanceof Error ? error.message : 'Не получилось добавить подписку.');
@@ -123,16 +127,18 @@ export function useAiAssistantChat({ subscriptions, onAddSubscription }: Params)
 
     if (nextDraft.confidence < 0.45) {
       setDraft(nextDraft);
-      addMessage('assistant', 'Я не до конца уверен в данных. Проверь карточку ниже и нажми "Добавить".');
+      showResult('Я не до конца уверен в данных. Проверь карточку ниже и нажми "Добавить".');
       return;
     }
 
     await onAddSubscription(nextDraft);
-    addMessage(
-      'assistant',
-      `Готово, я сам добавил подписку "${nextDraft.name}" на сумму ${nextDraft.cost} ${nextDraft.currency}.`,
-    );
+    showResult(`Готово, я сам добавил подписку "${nextDraft.name}" на сумму ${nextDraft.cost} ${nextDraft.currency}.`);
     clearImage();
+  }
+
+  function showResult(text: string) {
+    setNotice(text);
+    addMessage('assistant', text);
   }
 
   function wantsPhotoSubscriptionAdd(text: string) {
@@ -158,6 +164,7 @@ export function useAiAssistantChat({ subscriptions, onAddSubscription }: Params)
     isSending,
     listRef,
     messages,
+    notice,
     setInput,
     setIsOpen,
   };
