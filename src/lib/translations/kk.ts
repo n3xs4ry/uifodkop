@@ -22,7 +22,7 @@ export const kk: Record<keyof typeof ru, string> = {
   chargeDate: 'Төлем күні',
   add: 'Қосу',
   adding: 'Қосылуда...',
-  subscriptionAdded: 'Жазылым сәтті қосылды.',
+  subscriptionAdded: 'Жазылымды сәтті қостыңыз.',
   invalidSubscription: 'Атауын және дұрыс бағасын толтыр.',
   addSubscriptionError: 'Жазылымды қосу мүмкін болмады.',
   calendar: 'Күнтізбе',

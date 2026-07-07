@@ -30,6 +30,7 @@ type Props = {
 export function Dashboard({ session }: Props) {
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
   const [error, setError] = useState('');
+  const [addSuccess, setAddSuccess] = useState('');
   const [activeTool, setActiveTool] = useState<ToolTab>('calendar');
   const { t } = useI18n();
 
@@ -58,14 +59,18 @@ export function Dashboard({ session }: Props) {
   async function handleAdd(item: NewSubscription) {
     await addSubscription(item);
     await refresh();
+    setAddSuccess(t('subscriptionAdded'));
+    window.setTimeout(() => setAddSuccess(''), 4200);
   }
 
   async function handleDelete(id: string) {
+    setAddSuccess('');
     await deleteSubscription(id);
     await refresh();
   }
 
   async function handleUpdate(id: string, item: SubscriptionUpdate) {
+    setAddSuccess('');
     await updateSubscription(id, item);
     await refresh();
   }
@@ -91,6 +96,11 @@ export function Dashboard({ session }: Props) {
         </div>
       </section>
       {error && <p className="message">{error}</p>}
+      {addSuccess && (
+        <p className="success-message dashboard-success" role="status">
+          {addSuccess}
+        </p>
+      )}
       <section className="layout">
         <div className="stack">
           <section className="panel">

@@ -273,6 +273,12 @@ input:focus {
   color: var(--up);
 }
 
+.dashboard-success {
+  margin: 0 0 18px;
+  border: 1px solid rgba(14, 203, 129, 0.32);
+  box-shadow: 0 14px 38px rgba(14, 203, 129, 0.1);
+}
+
 .loading-panel {
   color: var(--muted);
 }

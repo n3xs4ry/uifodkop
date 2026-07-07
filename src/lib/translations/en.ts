@@ -22,7 +22,7 @@ export const en: Record<keyof typeof ru, string> = {
   chargeDate: 'Charge date',
   add: 'Add',
   adding: 'Adding...',
-  subscriptionAdded: 'Subscription added successfully.',
+  subscriptionAdded: 'You successfully added a subscription.',
   invalidSubscription: 'Fill in a name and a valid cost.',
   addSubscriptionError: 'Could not add subscription.',
   calendar: 'Calendar',
