@@ -16,7 +16,8 @@ type TelegramConnectionRow = {
   is_active: boolean;
 };
 
-const botUsername = import.meta.env.VITE_TELEGRAM_BOT_USERNAME as string | undefined;
+const fallbackBotUsername = 'subminder_bot';
+const botUsername = (import.meta.env.VITE_TELEGRAM_BOT_USERNAME as string | undefined) || fallbackBotUsername;
 
 function createConnectToken() {
   if ('randomUUID' in crypto) return crypto.randomUUID();
@@ -40,10 +41,6 @@ export async function loadTelegramConnection(): Promise<TelegramConnection | nul
 }
 
 export async function createTelegramConnectLink(): Promise<TelegramConnectData> {
-  if (!botUsername) {
-    throw new Error('Нет VITE_TELEGRAM_BOT_USERNAME в .env.local.');
-  }
-
   const connectToken = createConnectToken();
   const { error } = await supabase.from('telegram_connections').insert({
     connect_token: connectToken,
