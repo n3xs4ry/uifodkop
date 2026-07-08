@@ -1,26 +1,34 @@
 import { useI18n } from '../lib/i18n';
-import { formatCurrencyTotals, formatMoney } from '../lib/currency';
+import { formatMoney, type CurrencyCode } from '../lib/currency';
+import { convertMoney, type ExchangeRates } from '../lib/exchangeRates';
 import type { Subscription } from '../lib/subscriptions';
 
 type Props = {
+  displayCurrency: CurrencyCode;
+  rates: ExchangeRates;
   subscriptions: Subscription[];
 };
 
-export function MonthlySpendingPanel({ subscriptions }: Props) {
+export function MonthlySpendingPanel({ displayCurrency, rates, subscriptions }: Props) {
   const { locale, t } = useI18n();
-  const total = subscriptions.reduce((sum, item) => sum + item.cost, 0);
-  const topSubscriptions = [...subscriptions].sort((a, b) => b.cost - a.cost).slice(0, 4);
-  const maxCost = topSubscriptions[0]?.cost ?? 0;
+  const convertedItems = subscriptions.map((item) => ({
+    ...item,
+    displayCost: convertMoney(item.cost, item.currency, displayCurrency, rates),
+  }));
+  const total = convertedItems.reduce((sum, item) => sum + item.displayCost, 0);
+  const topSubscriptions = [...convertedItems].sort((a, b) => b.displayCost - a.displayCost).slice(0, 4);
+  const maxCost = topSubscriptions[0]?.displayCost ?? 0;
   const subscriptionGoal = 10;
-  const monthlyBudget = 50000;
+  const monthlyBudget = convertMoney(50000, 'KZT', displayCurrency, rates);
   const subscriptionProgress = Math.min(100, (subscriptions.length / subscriptionGoal) * 100);
   const budgetProgress = Math.min(100, (total / monthlyBudget) * 100);
+  const formattedTotal = formatMoney(total, displayCurrency, locale);
 
   return (
     <section className="monthly-spending-panel">
       <div className="monthly-spending-header">
         <p>{t('monthlySpendingLabel')}</p>
-        <strong>{formatCurrencyTotals(subscriptions, locale) || formatMoney(0, 'KZT', locale)}</strong>
+        <strong>{formattedTotal}</strong>
         <span>{t('monthlySpendingCount', { count: subscriptions.length })}</span>
       </div>
       <div className="spending-progress-grid">
@@ -36,7 +44,7 @@ export function MonthlySpendingPanel({ subscriptions }: Props) {
         <article>
           <div>
             <span>{t('monthlyBudgetProgress')}</span>
-            <strong>{formatCurrencyTotals(subscriptions, locale) || formatMoney(0, 'KZT', locale)}</strong>
+            <strong>{formattedTotal}</strong>
           </div>
           <div className="spending-progress-track">
             <span style={{ width: `${budgetProgress}%` }} />
@@ -49,10 +57,10 @@ export function MonthlySpendingPanel({ subscriptions }: Props) {
             <article key={item.id}>
               <div>
                 <strong>{item.name}</strong>
-                <span>{formatMoney(item.cost, item.currency, locale)}</span>
+                <span>{formatMoney(item.displayCost, displayCurrency, locale)}</span>
               </div>
               <div className="spending-track">
-                <span style={{ width: `${Math.max(12, (item.cost / maxCost) * 100)}%` }} />
+                <span style={{ width: `${Math.max(12, (item.displayCost / maxCost) * 100)}%` }} />
               </div>
             </article>
           ))

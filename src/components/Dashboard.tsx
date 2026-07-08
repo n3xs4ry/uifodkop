@@ -3,6 +3,7 @@ import type { Session } from '@supabase/supabase-js';
 import { AiAssistantChat } from './AiAssistantChat';
 import { BillingCalendar } from './BillingCalendar';
 import { CategoryBreakdownPanel } from './CategoryBreakdownPanel';
+import { DashboardHero } from './DashboardHero';
 import { MonthlySpendingPanel } from './MonthlySpendingPanel';
 import { NotificationReminderSettings } from './NotificationReminderSettings';
 import { NotificationTestPanel } from './NotificationTestPanel';
@@ -11,7 +12,8 @@ import { SubscriptionForm } from './SubscriptionForm';
 import { SubscriptionList } from './SubscriptionList';
 import { TelegramNotificationSettings } from './TelegramNotificationSettings';
 import { useI18n } from '../lib/i18n';
-import { formatCurrencyTotals, formatMoney } from '../lib/currency';
+import { formatMoney, type CurrencyCode } from '../lib/currency';
+import { convertMoney, useExchangeRates } from '../lib/exchangeRates';
 import {
   addSubscription,
   deleteSubscription,
@@ -34,6 +36,8 @@ export function Dashboard({ session }: Props) {
   const [error, setError] = useState('');
   const [addSuccess, setAddSuccess] = useState('');
   const [activeTool, setActiveTool] = useState<ToolTab>('calendar');
+  const [displayCurrency, setDisplayCurrency] = useState<CurrencyCode>('KZT');
+  const exchange = useExchangeRates();
   const { locale, t } = useI18n();
 
   async function refresh() {
@@ -50,8 +54,14 @@ export function Dashboard({ session }: Props) {
   }, []);
 
   const monthlyTotal = useMemo(
-    () => formatCurrencyTotals(subscriptions, locale) || formatMoney(0, 'KZT', locale),
-    [locale, subscriptions],
+    () => formatMoney(
+      subscriptions.reduce((sum, item) => (
+        sum + convertMoney(item.cost, item.currency, displayCurrency, exchange.rates)
+      ), 0),
+      displayCurrency,
+      locale,
+    ),
+    [displayCurrency, exchange.rates, locale, subscriptions],
   );
 
   const nextCharge = subscriptions
@@ -85,18 +95,17 @@ export function Dashboard({ session }: Props) {
 
   return (
     <>
-      <section className="hero">
-        <div>
-          <p className="eyebrow">Sub Tracker</p>
-          <h1>{t('heroTitle')}</h1>
-          <p className="hero-copy">{t('heroCopy')}</p>
-        </div>
-        <div className="hero-stat">
-          <span>{t('monthly')}</span>
-          <strong>{monthlyTotal}</strong>
-          <p>{nextCharge ? t('nextCharge', { name: nextCharge.name }) : t('addFirst')}</p>
-        </div>
-      </section>
+      <DashboardHero
+        copy={t('heroCopy')}
+        displayCurrency={displayCurrency}
+        monthlyLabel={t('monthly')}
+        monthlyTotal={monthlyTotal}
+        nextChargeText={nextCharge ? t('nextCharge', { name: nextCharge.name }) : t('addFirst')}
+        rateStatus={exchange.status}
+        rateUpdatedAt={exchange.updatedAt}
+        title={t('heroTitle')}
+        onCurrencyChange={setDisplayCurrency}
+      />
       {error && <p className="message">{error}</p>}
       {addSuccess && (
         <p className="success-message dashboard-success" role="status">
@@ -141,8 +150,8 @@ export function Dashboard({ session }: Props) {
           )}
         </div>
         <div className="dashboard-main">
-          <MonthlySpendingPanel subscriptions={subscriptions} />
-          <CategoryBreakdownPanel subscriptions={subscriptions} />
+          <MonthlySpendingPanel displayCurrency={displayCurrency} rates={exchange.rates} subscriptions={subscriptions} />
+          <CategoryBreakdownPanel displayCurrency={displayCurrency} rates={exchange.rates} subscriptions={subscriptions} />
           <SubscriptionList subscriptions={subscriptions} onDelete={handleDelete} onUpdate={handleUpdate} />
         </div>
       </section>

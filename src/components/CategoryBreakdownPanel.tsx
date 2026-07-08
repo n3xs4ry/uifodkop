@@ -1,9 +1,12 @@
 import { useI18n } from '../lib/i18n';
-import { formatCurrencyTotals } from '../lib/currency';
-import { summarizeCategories, type CategoryKey } from '../lib/subscriptionCategories';
+import { formatMoney, type CurrencyCode } from '../lib/currency';
+import { convertMoney, type ExchangeRates } from '../lib/exchangeRates';
+import { getSubscriptionCategory, type CategoryKey } from '../lib/subscriptionCategories';
 import type { Subscription } from '../lib/subscriptions';
 
 type Props = {
+  displayCurrency: CurrencyCode;
+  rates: ExchangeRates;
   subscriptions: Subscription[];
 };
 
@@ -16,9 +19,9 @@ const categoryIcons: Record<CategoryKey, string> = {
   video: 'VI',
 };
 
-export function CategoryBreakdownPanel({ subscriptions }: Props) {
+export function CategoryBreakdownPanel({ displayCurrency, rates, subscriptions }: Props) {
   const { locale, t } = useI18n();
-  const categories = summarizeCategories(subscriptions);
+  const categories = summarizeCategories(subscriptions, displayCurrency, rates);
   const maxTotal = categories[0]?.total ?? 0;
 
   return (
@@ -39,7 +42,7 @@ export function CategoryBreakdownPanel({ subscriptions }: Props) {
                   <span style={{ width: `${Math.max(14, (category.total / maxTotal) * 100)}%` }} />
                 </div>
               </div>
-              <strong>{formatCurrencyTotals(category.items, locale)}</strong>
+              <strong>{formatMoney(category.total, displayCurrency, locale)}</strong>
             </article>
           ))}
         </div>
@@ -48,4 +51,24 @@ export function CategoryBreakdownPanel({ subscriptions }: Props) {
       )}
     </section>
   );
+}
+
+function summarizeCategories(
+  subscriptions: Subscription[],
+  displayCurrency: CurrencyCode,
+  rates: ExchangeRates,
+) {
+  const summary = new Map<CategoryKey, { key: CategoryKey; total: number; count: number }>();
+
+  subscriptions.forEach((subscription) => {
+    const key = getSubscriptionCategory(subscription);
+    const current = summary.get(key) ?? { key, total: 0, count: 0 };
+    summary.set(key, {
+      ...current,
+      count: current.count + 1,
+      total: current.total + convertMoney(subscription.cost, subscription.currency, displayCurrency, rates),
+    });
+  });
+
+  return [...summary.values()].sort((a, b) => b.total - a.total);
 }

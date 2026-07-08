@@ -56,6 +56,26 @@
   font-weight: 900;
 }
 
+.currency-view-selector {
+  display: grid;
+  gap: 6px;
+  margin: 12px 0;
+}
+
+.currency-view-selector span,
+.currency-view-selector small {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.currency-view-selector select {
+  min-height: 38px;
+  border-color: rgba(252, 213, 53, 0.34);
+  background: rgba(11, 14, 17, 0.72);
+  font-weight: 900;
+}
+
 .welcome-page {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(280px, 360px);
