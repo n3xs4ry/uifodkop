@@ -6,6 +6,7 @@ export type SubscriptionRow = {
   name: string;
   cost: number;
   charge_date: string;
+  days_before: number;
 };
 
 export type PushSubscriptionRow = {
@@ -17,7 +18,14 @@ export type PushSubscriptionRow = {
 };
 
 export type DeliveryRow = {
+  charge_date: string;
   subscription_id: string;
+  days_before: number;
+};
+
+export type NotificationPreferenceRow = {
+  user_id: string;
+  reminder_days: number[] | null;
 };
 
 export const cors = {
@@ -27,13 +35,16 @@ export const cors = {
 
 const timeZone = Deno.env.get('NOTIFICATIONS_TIME_ZONE') ?? 'Asia/Almaty';
 
-export function todayInTimeZone() {
+export function dateInDays(days: number) {
+  const date = new Date();
+  date.setDate(date.getDate() + days);
+
   return new Intl.DateTimeFormat('en-CA', {
     day: '2-digit',
     month: '2-digit',
     timeZone,
     year: 'numeric',
-  }).format(new Date());
+  }).format(date);
 }
 
 function formatMoney(value: number) {
@@ -44,10 +55,14 @@ function formatMoney(value: number) {
 }
 
 export function createPushPayload(subscription: SubscriptionRow) {
+  const title = subscription.days_before === 0
+    ? 'Сегодня списание подписки'
+    : `Списание через ${subscription.days_before} дн.`;
+
   return JSON.stringify({
     body: `${subscription.name}: ${formatMoney(Number(subscription.cost))}`,
-    tag: `subscription-${subscription.id}-${subscription.charge_date}`,
-    title: 'Сегодня списание подписки',
+    tag: `subscription-${subscription.id}-${subscription.charge_date}-${subscription.days_before}`,
+    title,
     url: '/',
   });
 }

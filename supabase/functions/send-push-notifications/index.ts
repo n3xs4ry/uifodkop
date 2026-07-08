@@ -4,10 +4,11 @@ import {
   configureWebPush,
   cors,
   createPushPayload,
+  dateInDays,
   getSupabaseConfig,
   getWebPushStatusCode,
-  todayInTimeZone,
   type DeliveryRow,
+  type NotificationPreferenceRow,
   type PushSubscriptionRow,
   type SubscriptionRow,
 } from './helpers.ts';
@@ -25,16 +26,16 @@ Deno.serve(async (req) => {
     configureWebPush();
     const { supabaseUrl, serviceRoleKey } = getSupabaseConfig();
     const supabase = createClient(supabaseUrl, serviceRoleKey);
-    const chargeDate = todayInTimeZone();
-    const dueSubscriptions = await loadDueSubscriptions(supabase, chargeDate);
-    const pendingSubscriptions = await filterPendingSubscriptions(supabase, dueSubscriptions, chargeDate);
+    const preferences = await loadPreferences(supabase);
+    const dueSubscriptions = await loadDueSubscriptions(supabase, preferences);
+    const pendingSubscriptions = await filterPendingSubscriptions(supabase, dueSubscriptions);
     const devices = await loadUserDevices(
       supabase,
       [...new Set(pendingSubscriptions.map((item) => item.user_id))],
     );
     const sent = await sendNotifications(supabase, pendingSubscriptions, devices);
 
-    return json({ chargeDate, sent });
+    return json({ checkedDays: [2, 1, 0], sent });
   } catch (err) {
     return json({ error: String(err) }, 500);
   }
@@ -47,33 +48,67 @@ function json(body: unknown, status = 200) {
   });
 }
 
-async function loadDueSubscriptions(supabase: ReturnType<typeof createClient>, chargeDate: string) {
+async function loadPreferences(supabase: ReturnType<typeof createClient>) {
+  const { data, error } = await supabase
+    .from('notification_preferences')
+    .select('user_id, reminder_days');
+
+  if (error) throw error;
+  return new Map(
+    ((data ?? []) as NotificationPreferenceRow[]).map((item) => [
+      item.user_id,
+      normalizeReminderDays(item.reminder_days),
+    ]),
+  );
+}
+
+async function loadDueSubscriptions(
+  supabase: ReturnType<typeof createClient>,
+  preferences: Map<string, number[]>,
+) {
+  const rows = await Promise.all([2, 1, 0].map((day) => loadDueSubscriptionsForDay(supabase, day)));
+
+  return rows.flat().filter((item) => {
+    const userDays = preferences.get(item.user_id) ?? [1, 0];
+    return userDays.includes(item.days_before);
+  });
+}
+
+async function loadDueSubscriptionsForDay(supabase: ReturnType<typeof createClient>, daysBefore: number) {
+  const chargeDate = dateInDays(daysBefore);
   const { data, error } = await supabase
     .from('subscriptions')
     .select('id, user_id, name, cost, charge_date')
     .eq('charge_date', chargeDate);
 
   if (error) throw error;
-  return (data ?? []) as SubscriptionRow[];
+  return ((data ?? []) as Omit<SubscriptionRow, 'days_before'>[]).map((item) => ({
+    ...item,
+    days_before: daysBefore,
+  }));
 }
 
 async function filterPendingSubscriptions(
   supabase: ReturnType<typeof createClient>,
   dueSubscriptions: SubscriptionRow[],
-  chargeDate: string,
 ) {
   if (dueSubscriptions.length === 0) return [];
 
   const { data, error } = await supabase
     .from('push_notification_deliveries')
-    .select('subscription_id')
-    .eq('charge_date', chargeDate)
+    .select('subscription_id, charge_date, days_before')
     .in('subscription_id', dueSubscriptions.map((item) => item.id));
 
   if (error) throw error;
 
-  const deliveredIds = new Set(((data ?? []) as DeliveryRow[]).map((item) => item.subscription_id));
-  return dueSubscriptions.filter((item) => !deliveredIds.has(item.id));
+  const deliveredIds = new Set(
+    ((data ?? []) as DeliveryRow[]).map((item) => (
+      `${item.subscription_id}:${item.charge_date}:${item.days_before}`
+    )),
+  );
+  return dueSubscriptions.filter((item) => (
+    !deliveredIds.has(`${item.id}:${item.charge_date}:${item.days_before}`)
+  ));
 }
 
 async function loadUserDevices(supabase: ReturnType<typeof createClient>, userIds: string[]) {
@@ -132,7 +167,14 @@ async function sendToDevice(
 async function markDelivered(supabase: ReturnType<typeof createClient>, subscription: SubscriptionRow) {
   await supabase.from('push_notification_deliveries').insert({
     charge_date: subscription.charge_date,
+    days_before: subscription.days_before,
     subscription_id: subscription.id,
     user_id: subscription.user_id,
   });
+}
+
+function normalizeReminderDays(value: number[] | null) {
+  if (!Array.isArray(value)) return [1, 0];
+  const days = value.filter((item) => item === 0 || item === 1 || item === 2);
+  return days.length > 0 ? days : [1, 0];
 }

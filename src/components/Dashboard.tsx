@@ -4,6 +4,7 @@ import { AiAssistantChat } from './AiAssistantChat';
 import { BillingCalendar } from './BillingCalendar';
 import { CategoryBreakdownPanel } from './CategoryBreakdownPanel';
 import { MonthlySpendingPanel } from './MonthlySpendingPanel';
+import { NotificationReminderSettings } from './NotificationReminderSettings';
 import { NotificationTestPanel } from './NotificationTestPanel';
 import { PushNotificationSettings } from './PushNotificationSettings';
 import { SubscriptionForm } from './SubscriptionForm';
@@ -126,12 +127,14 @@ export function Dashboard({ session }: Props) {
           {activeTool === 'calendar' && <BillingCalendar subscriptions={subscriptions} />}
           {activeTool === 'telegram' && (
             <>
+              <NotificationReminderSettings />
               <TelegramNotificationSettings />
               <NotificationTestPanel />
             </>
           )}
           {activeTool === 'push' && (
             <>
+              <NotificationReminderSettings />
               <PushNotificationSettings />
               <NotificationTestPanel />
             </>

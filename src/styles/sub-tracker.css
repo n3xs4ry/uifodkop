@@ -938,6 +938,7 @@
 
 .telegram-fallback,
 .telegram-actions,
+.reminder-options,
 .test-actions {
   display: grid;
   gap: 10px;
@@ -945,6 +946,25 @@
 
 .telegram-fallback {
   margin-top: 12px;
+}
+
+.reminder-options label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 11px 12px;
+  background: #181a20;
+  color: var(--body);
+  font-size: 14px;
+  font-weight: 900;
+}
+
+.reminder-options input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--accent);
 }
 
 .telegram-fallback code {
