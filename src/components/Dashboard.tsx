@@ -1,16 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
 import type { Session } from '@supabase/supabase-js';
 import { AiAssistantChat } from './AiAssistantChat';
-import { BillingCalendar } from './BillingCalendar';
 import { CategoryBreakdownPanel } from './CategoryBreakdownPanel';
 import { DashboardHero } from './DashboardHero';
+import { DashboardTools, type ToolTab } from './DashboardTools';
 import { MonthlySpendingPanel } from './MonthlySpendingPanel';
-import { NotificationReminderSettings } from './NotificationReminderSettings';
-import { NotificationTestPanel } from './NotificationTestPanel';
-import { PushNotificationSettings } from './PushNotificationSettings';
 import { SubscriptionForm } from './SubscriptionForm';
 import { SubscriptionList } from './SubscriptionList';
-import { TelegramNotificationSettings } from './TelegramNotificationSettings';
 import { useI18n } from '../lib/i18n';
 import { formatMoney, type CurrencyCode } from '../lib/currency';
 import { convertMoney, useExchangeRates } from '../lib/exchangeRates';
@@ -24,8 +20,6 @@ import {
   type Subscription,
   type SubscriptionUpdate,
 } from '../lib/subscriptions';
-
-type ToolTab = 'calendar' | 'telegram' | 'push';
 
 type Props = {
   session: Session | null;
@@ -119,38 +113,28 @@ export function Dashboard({ session }: Props) {
               <p>{t('newSubscription')}</p>
               <h2>{t('addCharge')}</h2>
             </div>
-            <SubscriptionForm onAdd={handleAdd} />
+            <SubscriptionForm
+              currency={displayCurrency}
+              onAdd={handleAdd}
+              onCurrencyChange={setDisplayCurrency}
+            />
           </section>
-          <div className="tool-tabs" aria-label="Dashboard tools">
-            {toolTabs.map((tab) => (
-              <button
-                className={activeTool === tab.id ? 'active' : ''}
-                key={tab.id}
-                type="button"
-                onClick={() => setActiveTool(tab.id)}
-              >
-                {tab.label}
-              </button>
-            ))}
-          </div>
-          {activeTool === 'calendar' && <BillingCalendar subscriptions={subscriptions} />}
-          {activeTool === 'telegram' && (
-            <>
-              <NotificationReminderSettings />
-              <TelegramNotificationSettings />
-              <NotificationTestPanel />
-            </>
-          )}
-          {activeTool === 'push' && (
-            <>
-              <NotificationReminderSettings />
-              <PushNotificationSettings />
-              <NotificationTestPanel />
-            </>
-          )}
+          <DashboardTools
+            activeTool={activeTool}
+            subscriptions={subscriptions}
+            toolTabs={toolTabs}
+            onToolChange={setActiveTool}
+          />
         </div>
         <div className="dashboard-main">
-          <MonthlySpendingPanel displayCurrency={displayCurrency} rates={exchange.rates} subscriptions={subscriptions} />
+          <MonthlySpendingPanel
+            displayCurrency={displayCurrency}
+            rateStatus={exchange.status}
+            rateUpdatedAt={exchange.updatedAt}
+            rates={exchange.rates}
+            subscriptions={subscriptions}
+            onCurrencyChange={setDisplayCurrency}
+          />
           <CategoryBreakdownPanel displayCurrency={displayCurrency} rates={exchange.rates} subscriptions={subscriptions} />
           <SubscriptionList subscriptions={subscriptions} onDelete={handleDelete} onUpdate={handleUpdate} />
         </div>

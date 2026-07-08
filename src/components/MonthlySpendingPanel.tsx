@@ -1,15 +1,26 @@
 import { useI18n } from '../lib/i18n';
 import { formatMoney, type CurrencyCode } from '../lib/currency';
-import { convertMoney, type ExchangeRates } from '../lib/exchangeRates';
+import { convertMoney, type ExchangeRates, type RateStatus } from '../lib/exchangeRates';
 import type { Subscription } from '../lib/subscriptions';
+import { CurrencyViewSelector } from './CurrencyViewSelector';
 
 type Props = {
   displayCurrency: CurrencyCode;
+  rateStatus: RateStatus;
+  rateUpdatedAt: string;
   rates: ExchangeRates;
   subscriptions: Subscription[];
+  onCurrencyChange: (currency: CurrencyCode) => void;
 };
 
-export function MonthlySpendingPanel({ displayCurrency, rates, subscriptions }: Props) {
+export function MonthlySpendingPanel({
+  displayCurrency,
+  onCurrencyChange,
+  rateStatus,
+  rateUpdatedAt,
+  rates,
+  subscriptions,
+}: Props) {
   const { locale, t } = useI18n();
   const convertedItems = subscriptions.map((item) => ({
     ...item,
@@ -27,9 +38,17 @@ export function MonthlySpendingPanel({ displayCurrency, rates, subscriptions }: 
   return (
     <section className="monthly-spending-panel">
       <div className="monthly-spending-header">
-        <p>{t('monthlySpendingLabel')}</p>
-        <strong>{formattedTotal}</strong>
-        <span>{t('monthlySpendingCount', { count: subscriptions.length })}</span>
+        <div>
+          <p>{t('monthlySpendingLabel')}</p>
+          <strong>{formattedTotal}</strong>
+          <span>{t('monthlySpendingCount', { count: subscriptions.length })}</span>
+        </div>
+        <CurrencyViewSelector
+          currency={displayCurrency}
+          status={rateStatus}
+          updatedAt={rateUpdatedAt}
+          onChange={onCurrencyChange}
+        />
       </div>
       <div className="spending-progress-grid">
         <article>

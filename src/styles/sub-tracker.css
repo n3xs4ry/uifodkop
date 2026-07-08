@@ -60,6 +60,7 @@
   display: grid;
   gap: 6px;
   margin: 12px 0;
+  min-width: 150px;
 }
 
 .currency-view-selector span,
@@ -638,6 +639,20 @@
   pointer-events: none;
   transform: translateX(-130%);
   animation: panel-shine 4.2s ease-in-out infinite;
+}
+
+.monthly-spending-header {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.monthly-spending-header .currency-view-selector {
+  width: min(190px, 100%);
+  margin: 0;
 }
 
 .monthly-spending-header p {
@@ -1283,6 +1298,14 @@
   .monthly-spending-panel,
   .category-panel {
     padding: 18px;
+  }
+
+  .monthly-spending-header {
+    display: grid;
+  }
+
+  .monthly-spending-header .currency-view-selector {
+    width: 100%;
   }
 
   .category-list article {
