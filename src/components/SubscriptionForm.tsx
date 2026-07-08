@@ -4,18 +4,17 @@ import { currencies, type CurrencyCode } from '../lib/currency';
 import type { NewSubscription } from '../lib/subscriptions';
 
 type Props = {
-  currency: CurrencyCode;
   onAdd: (subscription: NewSubscription) => Promise<void>;
-  onCurrencyChange: (currency: CurrencyCode) => void;
 };
 
 function today() {
   return new Date().toISOString().slice(0, 10);
 }
 
-export function SubscriptionForm({ currency, onAdd, onCurrencyChange }: Props) {
+export function SubscriptionForm({ onAdd }: Props) {
   const [name, setName] = useState('');
   const [cost, setCost] = useState('');
+  const [currency, setCurrency] = useState<CurrencyCode>('KZT');
   const [chargeDate, setChargeDate] = useState(today());
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
@@ -40,6 +39,7 @@ export function SubscriptionForm({ currency, onAdd, onCurrencyChange }: Props) {
       await onAdd({ name: name.trim(), cost: amount, currency, chargeDate });
       setName('');
       setCost('');
+      setCurrency('KZT');
       setChargeDate(today());
       setSuccess(t('subscriptionAdded'));
     } catch (err) {
@@ -61,7 +61,7 @@ export function SubscriptionForm({ currency, onAdd, onCurrencyChange }: Props) {
       </label>
       <label>
         {t('currency')}
-        <select value={currency} onChange={(event) => onCurrencyChange(event.target.value as CurrencyCode)}>
+        <select value={currency} onChange={(event) => setCurrency(event.target.value as CurrencyCode)}>
           {currencies.map((item) => (
             <option key={item} value={item}>
               {item}

@@ -91,14 +91,10 @@ export function Dashboard({ session }: Props) {
     <>
       <DashboardHero
         copy={t('heroCopy')}
-        displayCurrency={displayCurrency}
         monthlyLabel={t('monthly')}
         monthlyTotal={monthlyTotal}
         nextChargeText={nextCharge ? t('nextCharge', { name: nextCharge.name }) : t('addFirst')}
-        rateStatus={exchange.status}
-        rateUpdatedAt={exchange.updatedAt}
         title={t('heroTitle')}
-        onCurrencyChange={setDisplayCurrency}
       />
       {error && <p className="message">{error}</p>}
       {addSuccess && (
@@ -113,11 +109,7 @@ export function Dashboard({ session }: Props) {
               <p>{t('newSubscription')}</p>
               <h2>{t('addCharge')}</h2>
             </div>
-            <SubscriptionForm
-              currency={displayCurrency}
-              onAdd={handleAdd}
-              onCurrencyChange={setDisplayCurrency}
-            />
+            <SubscriptionForm onAdd={handleAdd} />
           </section>
           <DashboardTools
             activeTool={activeTool}
