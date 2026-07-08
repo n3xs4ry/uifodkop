@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { useI18n } from '../lib/i18n';
-import { currencies, type CurrencyCode } from '../lib/currency';
+import type { CurrencyCode } from '../lib/currency';
 import type { NewSubscription } from '../lib/subscriptions';
 
 type Props = {
+  currency: CurrencyCode;
   onAdd: (subscription: NewSubscription) => Promise<void>;
 };
 
@@ -11,10 +12,9 @@ function today() {
   return new Date().toISOString().slice(0, 10);
 }
 
-export function SubscriptionForm({ onAdd }: Props) {
+export function SubscriptionForm({ currency, onAdd }: Props) {
   const [name, setName] = useState('');
   const [cost, setCost] = useState('');
-  const [currency, setCurrency] = useState<CurrencyCode>('KZT');
   const [chargeDate, setChargeDate] = useState(today());
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
@@ -39,7 +39,6 @@ export function SubscriptionForm({ onAdd }: Props) {
       await onAdd({ name: name.trim(), cost: amount, currency, chargeDate });
       setName('');
       setCost('');
-      setCurrency('KZT');
       setChargeDate(today());
       setSuccess(t('subscriptionAdded'));
     } catch (err) {
@@ -58,16 +57,6 @@ export function SubscriptionForm({ onAdd }: Props) {
       <label>
         {t('cost')}
         <input min="0" step="0.01" type="number" value={cost} onChange={(event) => setCost(event.target.value)} placeholder="2490" />
-      </label>
-      <label>
-        {t('currency')}
-        <select value={currency} onChange={(event) => setCurrency(event.target.value as CurrencyCode)}>
-          {currencies.map((item) => (
-            <option key={item} value={item}>
-              {item}
-            </option>
-          ))}
-        </select>
       </label>
       <label>
         {t('chargeDate')}

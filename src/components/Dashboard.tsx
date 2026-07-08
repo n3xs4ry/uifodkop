@@ -109,7 +109,7 @@ export function Dashboard({ session }: Props) {
               <p>{t('newSubscription')}</p>
               <h2>{t('addCharge')}</h2>
             </div>
-            <SubscriptionForm onAdd={handleAdd} />
+            <SubscriptionForm currency={displayCurrency} onAdd={handleAdd} />
           </section>
           <DashboardTools
             activeTool={activeTool}
